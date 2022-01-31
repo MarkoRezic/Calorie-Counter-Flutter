@@ -44,12 +44,6 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
 
   @override
   Widget build(BuildContext context) {
-    print(HBO.male().calculate(65, 175, 22));
-    print(HBO.female().calculate(65, 175, 22));
-    print(HBR.male().calculate(65, 175, 22));
-    print(HBR.female().calculate(65, 175, 22));
-    print(MSJ.male().calculate(65, 175, 22));
-    print(MSJ.female().calculate(65, 175, 22));
 
     return Scaffold(
       backgroundColor: mainColorDark,
