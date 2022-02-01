@@ -1,6 +1,5 @@
-import 'package:calorie_counter/component_widgets/calorie_route.dart';
 import 'package:calorie_counter/component_widgets/light_green_button.dart';
-import 'package:calorie_counter/component_widgets/page_indicator_row.dart';
+import 'package:calorie_counter/component_widgets/transparent_outlined_button.dart';
 import 'package:calorie_counter/custom_colors.dart';
 import 'package:calorie_counter/views/basicInfoPage.dart';
 import 'package:flutter/cupertino.dart';
@@ -12,7 +11,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,7 +64,8 @@ class _LoginPageState extends State<LoginPage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (BuildContext context) => const BasicInfoPage(),
+                              builder: (BuildContext context) =>
+                                  const BasicInfoPage(),
                             ),
                           );
                         },
@@ -86,6 +85,44 @@ class _LoginPageState extends State<LoginPage> {
               ],
             ),
             const Spacer(),
+            Text(
+              'Imate račun?',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.white70,
+              ),
+            ),
+            Row(
+              children: [
+                const Spacer(),
+                Expanded(
+                  flex: 4,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TransparentOutlinedButton(
+                        text: 'PRIJAVI SE',
+                        hasShadow: false,
+                        onTap: () {
+                          print('tapped');
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (BuildContext context) =>
+                                  const BasicInfoPage(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+              ],
+            ),
+            SizedBox(
+              height: 20,
+            ),
           ],
         ),
       ),
