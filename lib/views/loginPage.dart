@@ -1,3 +1,4 @@
+import 'package:calorie_counter/component_widgets/custom_dialog.dart';
 import 'package:calorie_counter/component_widgets/light_green_button.dart';
 import 'package:calorie_counter/component_widgets/transparent_outlined_button.dart';
 import 'package:calorie_counter/custom_colors.dart';
@@ -13,6 +14,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   TextEditingController usernameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  bool showPassword = false;
 
   @override
   void initState() {
@@ -22,6 +24,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: mainColorDark,
       body: SafeArea(
         child: Column(
@@ -73,18 +76,42 @@ class _LoginPageState extends State<LoginPage> {
                             context,
                             MaterialPageRoute(
                               builder: (BuildContext context) =>
-                                  const BasicInfoPage(),
+                                  const BasicInfoPage(
+                                goal_type: 1,
+                              ),
                             ),
                           );
                         },
                       ),
                       LightGreenButton(
                         text: 'ODRŽAVAJ KILAŽU',
-                        onTap: () {},
+                        onTap: () {
+                          print('tapped');
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (BuildContext context) =>
+                                  const BasicInfoPage(
+                                goal_type: 2,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                       LightGreenButton(
                         text: 'IZGRADI MIŠIĆE',
-                        onTap: () {},
+                        onTap: () {
+                          print('tapped');
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (BuildContext context) =>
+                                  const BasicInfoPage(
+                                goal_type: 3,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -116,34 +143,11 @@ class _LoginPageState extends State<LoginPage> {
                           showDialog(
                             context: context,
                             builder: (BuildContext context) {
-                              return Dialog(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                insetPadding: EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 140,
-                                ),
-                                backgroundColor: mainColorFaded,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 40,
-                                    vertical: 30,
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      TextFormField(
-                                        controller: usernameController,
-                                        decoration: InputDecoration(
-                                          hintText: "username",
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
+                              return CustomDialog();
                             },
-                          );
+                          ).then((value) {
+                            print(value);
+                          });
                         },
                       ),
                     ],

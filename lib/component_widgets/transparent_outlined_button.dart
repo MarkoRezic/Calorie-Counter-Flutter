@@ -10,6 +10,7 @@ class TransparentOutlinedButton extends StatelessWidget {
   final double? height;
   final bool hasShadow;
   final bool smallText;
+  final Color textColor;
 
   const TransparentOutlinedButton({
     Key? key,
@@ -19,6 +20,7 @@ class TransparentOutlinedButton extends StatelessWidget {
     this.height = 50,
     this.hasShadow = true,
     this.smallText = false,
+    this.textColor = Colors.white,
   }) : super(key: key);
 
   const TransparentOutlinedButton.small({
@@ -29,6 +31,7 @@ class TransparentOutlinedButton extends StatelessWidget {
     this.height = 50,
     this.hasShadow = false,
     this.smallText = true,
+    this.textColor = Colors.white,
   }) : super(key: key);
 
   @override
@@ -46,12 +49,12 @@ class TransparentOutlinedButton extends StatelessWidget {
         ),
         boxShadow: hasShadow
             ? [
-          const BoxShadow(
-            color: mainColor,
-            offset: Offset(3, 3),
-            blurRadius: 3,
-          ),
-        ]
+                const BoxShadow(
+                  color: mainColor,
+                  offset: Offset(3, 3),
+                  blurRadius: 3,
+                ),
+              ]
             : [],
       ),
       child: ClipRRect(
@@ -79,7 +82,7 @@ class TransparentOutlinedButton extends StatelessWidget {
                 child: Text(
                   text,
                   style: TextStyle(
-                    color: Colors.white,
+                    color: textColor,
                     fontSize: smallText ? 16 : 18,
                     fontWeight: smallText ? FontWeight.normal : FontWeight.bold,
                   ),
