@@ -11,6 +11,14 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  TextEditingController usernameController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,12 +113,36 @@ class _LoginPageState extends State<LoginPage> {
                         hasShadow: false,
                         onTap: () {
                           print('tapped');
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (BuildContext context) =>
-                                  const BasicInfoPage(),
-                            ),
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return Dialog(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                insetPadding: EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 140,
+                                ),
+                                backgroundColor: mainColorFaded,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 40,
+                                    vertical: 30,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      TextFormField(
+                                        controller: usernameController,
+                                        decoration: InputDecoration(
+                                          hintText: "username",
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
                           );
                         },
                       ),
