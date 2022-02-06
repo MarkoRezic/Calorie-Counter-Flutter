@@ -28,8 +28,13 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
   bool showPassword = false;
   bool showRepassword = false;
   bool loading = false;
-  String error = "";
-  bool showError = false;
+  String errorUsername = "";
+  bool showErrorUsername = false;
+  String errorPassword = "";
+  bool showErrorPassword = false;
+  String errorRepassword = "";
+  bool showErrorRepassword = false;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -68,19 +73,19 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
       setState(() {
         if (response.data["error"] == 0) {
           setState(() {
-            showError = false;
-            error = "";
+            showErrorUsername = false;
+            errorUsername = "";
           });
         } else {
           setState(() {
-            showError = true;
-            error = response.data["message"];
+            showErrorUsername = true;
+            errorUsername = response.data["message"];
           });
         }
         loading = false;
       });
     });
-    return !showError;
+    return showErrorUsername;
   }
 
   void _handleSelect(index) {
@@ -102,7 +107,8 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
   void _handleNext() async {
     if (selectedPage == pageCount - 1) return Navigator.pop(context);
     if (selectedPage == 0) {
-      if (!(await _isUsernameTaken())) {
+      bool isUsernameTaken = await _isUsernameTaken();
+      if ((!_formKey.currentState!.validate() || isUsernameTaken)) {
         return;
       }
     }
@@ -119,157 +125,199 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
         alignment: Alignment.center,
         padding: EdgeInsets.all(30),
         child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: usernameController,
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white.withOpacity(0.15),
-                  hintStyle: TextStyle(
-                    color: Colors.white.withOpacity(0.4),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: usernameController,
+                  style: TextStyle(
+                    color: Colors.white,
                   ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.white,
-                      width: 2,
+                  validator: (value) {
+                    if (value == null || value.length == 0) {
+                      return 'Molimo unesite korisničko ime.';
+                    } else if (value.length < 3) {
+                      return 'Korisničko ime mora imati barem 3 slova.';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.15),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.white,
+                        width: 2,
+                      ),
+                    ),
+                    labelText: "korisničko ime",
+                    labelStyle: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white.withOpacity(0.6),
+                    ),
+                    hintText: "username",
+                    hintStyle: TextStyle(
+                      color: Colors.white.withOpacity(0.4),
+                    ),
+                    errorText: errorUsername.length == 0 ? null : errorUsername,
+                    errorStyle: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: errorColor,
                     ),
                   ),
-                  labelText: "korisničko ime",
-                  labelStyle: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white.withOpacity(0.6),
-                  ),
-                  hintText: "username",
                 ),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              TextFormField(
-                controller: passwordController,
-                obscureText: !showPassword,
-                style: TextStyle(
-                  color: Colors.white,
+                SizedBox(
+                  height: 20,
                 ),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white.withOpacity(0.15),
-                  hintStyle: TextStyle(
-                    color: Colors.white.withOpacity(0.4),
+                TextFormField(
+                  controller: passwordController,
+                  obscureText: !showPassword,
+                  style: TextStyle(
+                    color: Colors.white,
                   ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.white,
-                      width: 2,
+                  validator: (value) {
+                    if (value == null || value.length == 0) {
+                      return 'Molimo unesite šifru.';
+                    } else if (value.length < 8) {
+                      return 'Šifra mora imati barem 3 slova.';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.15),
+                    hintStyle: TextStyle(
+                      color: Colors.white.withOpacity(0.4),
+                    ),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.white,
+                        width: 2,
+                      ),
+                    ),
+                    suffixIcon: IconButton(
+                      color: Colors.white.withOpacity(0.6),
+                      icon: Icon(showPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility),
+                      onPressed: () {
+                        setState(() {
+                          showPassword = !showPassword;
+                        });
+                      },
+                    ),
+                    labelText: "šifra",
+                    labelStyle: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white.withOpacity(0.6),
+                    ),
+                    errorStyle: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: errorColor,
                     ),
                   ),
-                  suffixIcon: IconButton(
-                    color: Colors.white.withOpacity(0.6),
-                    icon: Icon(
-                        showPassword ? Icons.visibility_off : Icons.visibility),
-                    onPressed: () {
-                      setState(() {
-                        showPassword = !showPassword;
-                      });
-                    },
-                  ),
-                  labelText: "šifra",
-                  labelStyle: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white.withOpacity(0.6),
-                  ),
                 ),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              TextFormField(
-                controller: repasswordController,
-                obscureText: !showRepassword,
-                style: TextStyle(
-                  color: Colors.white,
+                SizedBox(
+                  height: 20,
                 ),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white.withOpacity(0.15),
-                  hintStyle: TextStyle(
-                    color: Colors.white.withOpacity(0.4),
+                TextFormField(
+                  controller: repasswordController,
+                  obscureText: !showRepassword,
+                  style: TextStyle(
+                    color: Colors.white,
                   ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.white,
-                      width: 2,
+                  validator: (value) {
+                    if (value == null || value.length == 0) {
+                      return 'Molimo ponovite šifru.';
+                    } else if (value != passwordController.text) {
+                      return 'Šifre se ne podudaraju.';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.15),
+                    hintStyle: TextStyle(
+                      color: Colors.white.withOpacity(0.4),
+                    ),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.white,
+                        width: 2,
+                      ),
+                    ),
+                    suffixIcon: IconButton(
+                      color: Colors.white.withOpacity(0.6),
+                      icon: Icon(showRepassword
+                          ? Icons.visibility_off
+                          : Icons.visibility),
+                      onPressed: () {
+                        setState(() {
+                          showRepassword = !showRepassword;
+                        });
+                      },
+                    ),
+                    labelText: "ponovite šifru",
+                    labelStyle: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white.withOpacity(0.6),
+                    ),
+                    errorStyle: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: errorColor,
                     ),
                   ),
-                  suffixIcon: IconButton(
-                    color: Colors.white.withOpacity(0.6),
-                    icon: Icon(showRepassword
-                        ? Icons.visibility_off
-                        : Icons.visibility),
-                    onPressed: () {
-                      setState(() {
-                        showRepassword = !showRepassword;
-                      });
-                    },
-                  ),
-                  labelText: "ponovite šifru",
-                  labelStyle: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white.withOpacity(0.6),
-                  ),
                 ),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              widget.goal_type != 2
-                  ? (weeklyGoalsDescriptions.length != 0
-                      ? DropdownButtonFormField(
-                          dropdownColor: mainColorFill,
-                          iconEnabledColor: Colors.white,
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.white.withOpacity(0.15),
-                            enabledBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(
-                                color: Colors.white,
-                                width: 2,
-                              ),
-                            ),
-                            labelText: "odaberite brzinu napretka",
-                            labelStyle: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white.withOpacity(0.6),
-                            ),
-                          ),
-                          items: List.generate(
-                            weeklyGoalsDescriptions.length,
-                            (index) => DropdownMenuItem<String>(
-                              child: Text(
-                                weeklyGoalsDescriptions[index],
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.8),
+                SizedBox(
+                  height: 20,
+                ),
+                widget.goal_type != 2
+                    ? (weeklyGoalsDescriptions.length != 0
+                        ? DropdownButtonFormField(
+                            dropdownColor: mainColorFill,
+                            iconEnabledColor: Colors.white,
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: Colors.white.withOpacity(0.15),
+                              enabledBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Colors.white,
+                                  width: 2,
                                 ),
                               ),
-                              value: weeklyGoalsDescriptions[index],
+                              labelText: "odaberite brzinu napretka",
+                              labelStyle: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white.withOpacity(0.6),
+                              ),
                             ),
-                          ),
-                          value:
-                              weeklyGoalsDescriptions[selectedWeeklyGoalIndex],
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              selectedWeeklyGoalIndex = weeklyGoalsDescriptions
-                                  .indexOf(newValue ?? "");
-                            });
-                          })
-                      : CircularProgressIndicator())
-                  : Container(),
-            ],
+                            items: List.generate(
+                              weeklyGoalsDescriptions.length,
+                              (index) => DropdownMenuItem<String>(
+                                child: Text(
+                                  weeklyGoalsDescriptions[index],
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.8),
+                                  ),
+                                ),
+                                value: weeklyGoalsDescriptions[index],
+                              ),
+                            ),
+                            value: weeklyGoalsDescriptions[
+                                selectedWeeklyGoalIndex],
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                selectedWeeklyGoalIndex =
+                                    weeklyGoalsDescriptions
+                                        .indexOf(newValue ?? "");
+                              });
+                            })
+                        : CircularProgressIndicator())
+                    : Container(),
+              ],
+            ),
           ),
         ),
       ),
