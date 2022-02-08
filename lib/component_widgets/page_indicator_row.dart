@@ -1,8 +1,6 @@
 import 'package:calorie_counter/component_widgets/page_indicator_dot.dart';
 import 'package:flutter/material.dart';
 
-import '../custom_colors.dart';
-
 class IndicatorRow extends StatelessWidget {
   final int length;
   final int activeIndex;
@@ -18,11 +16,8 @@ class IndicatorRow extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: List.generate(
         length,
-        (index) => GestureDetector(
-          onTap: () => onSelect(index),
-          child: IndicatorDot(
-            active: index == activeIndex,
-          ),
+        (index) => IndicatorDot(
+          active: index == activeIndex,
         ),
       ),
     );

@@ -2,6 +2,7 @@ import 'package:calorie_counter/component_widgets/transparent_outlined_button.da
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../custom_colors.dart';
 
@@ -29,9 +30,11 @@ class _CustomDialogState extends State<CustomDialog> {
         "username": usernameController.text,
         "password": passwordController.text,
       },
-    ).then((response) {
+    ).then((response) async {
       print(response);
       if (response.data["error"] == 0) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setString("token", response.data["token"]);
         Navigator.pop(context, true);
       } else {
         setState(() {
