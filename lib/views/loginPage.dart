@@ -2,6 +2,8 @@ import 'package:calorie_counter/component_widgets/custom_dialog.dart';
 import 'package:calorie_counter/component_widgets/light_green_button.dart';
 import 'package:calorie_counter/component_widgets/transparent_outlined_button.dart';
 import 'package:calorie_counter/custom_colors.dart';
+import 'package:calorie_counter/utils/bmr_model.dart';
+import 'package:calorie_counter/utils/cache_manager.dart';
 import 'package:calorie_counter/views/basicInfoPage.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
@@ -41,6 +43,12 @@ class _LoginPageState extends State<LoginPage> {
           .get("http://10.0.2.2:3000/users/token/" + prefs!.getString('token')!)
           .then((response) {
         print(response);
+        dynamic user = response.data["user"];
+        CacheManager.cacheData("user", user);
+        BMRModel bmrModel =
+            getAppropriateModel(user["model_id"], user["gender_id"]);
+        CacheManager.cacheData("dailyCalories",
+            bmrModel.calculate(user["weight"], user["height"], user["age"]));
         Navigator.push(
           context,
           MaterialPageRoute(

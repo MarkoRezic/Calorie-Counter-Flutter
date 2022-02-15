@@ -7,7 +7,7 @@ abstract class BMRModel {
     this.sCoeff = 0,
   });
 
-  int calculate(int mass, int height, int age) {
+  int calculate(num mass, num height, num age) {
     return (mass * mCoeff + height * hCoeff + age * aCoeff + sCoeff).round();
   }
 }
@@ -32,11 +32,11 @@ class HBO extends BMRModel {
     aCoeff = 6.7550,
     sCoeff = 66.4730,
   }) : super(
-    mCoeff: mCoeff,
-    hCoeff: hCoeff,
-    aCoeff: aCoeff,
-    sCoeff: sCoeff,
-  );
+          mCoeff: mCoeff,
+          hCoeff: hCoeff,
+          aCoeff: aCoeff,
+          sCoeff: sCoeff,
+        );
 
   HBO.female({
     mCoeff = 9.5634,
@@ -44,11 +44,11 @@ class HBO extends BMRModel {
     aCoeff = 4.6756,
     sCoeff = 655.0955,
   }) : super(
-    mCoeff: mCoeff,
-    hCoeff: hCoeff,
-    aCoeff: aCoeff,
-    sCoeff: sCoeff,
-  );
+          mCoeff: mCoeff,
+          hCoeff: hCoeff,
+          aCoeff: aCoeff,
+          sCoeff: sCoeff,
+        );
 }
 
 ///Harris Benedict Revised
@@ -59,11 +59,11 @@ class HBR extends BMRModel {
     aCoeff = 5.7153,
     sCoeff = 360.78425,
   }) : super(
-    mCoeff: mCoeff,
-    hCoeff: hCoeff,
-    aCoeff: aCoeff,
-    sCoeff: sCoeff,
-  );
+          mCoeff: mCoeff,
+          hCoeff: hCoeff,
+          aCoeff: aCoeff,
+          sCoeff: sCoeff,
+        );
 
   HBR.male({
     mCoeff = 13.397,
@@ -71,11 +71,11 @@ class HBR extends BMRModel {
     aCoeff = 5.677,
     sCoeff = 88.362,
   }) : super(
-    mCoeff: mCoeff,
-    hCoeff: hCoeff,
-    aCoeff: aCoeff,
-    sCoeff: sCoeff,
-  );
+          mCoeff: mCoeff,
+          hCoeff: hCoeff,
+          aCoeff: aCoeff,
+          sCoeff: sCoeff,
+        );
 
   HBR.female({
     mCoeff = 9.247,
@@ -83,11 +83,11 @@ class HBR extends BMRModel {
     aCoeff = 4.330,
     sCoeff = 447.593,
   }) : super(
-    mCoeff: mCoeff,
-    hCoeff: hCoeff,
-    aCoeff: aCoeff,
-    sCoeff: sCoeff,
-  );
+          mCoeff: mCoeff,
+          hCoeff: hCoeff,
+          aCoeff: aCoeff,
+          sCoeff: sCoeff,
+        );
 }
 
 ///Mifflin St Jeor
@@ -98,11 +98,11 @@ class MSJ extends BMRModel {
     aCoeff = 5.0,
     sCoeff = -75.0,
   }) : super(
-    mCoeff: mCoeff,
-    hCoeff: hCoeff,
-    aCoeff: aCoeff,
-    sCoeff: sCoeff,
-  );
+          mCoeff: mCoeff,
+          hCoeff: hCoeff,
+          aCoeff: aCoeff,
+          sCoeff: sCoeff,
+        );
 
   MSJ.male({
     mCoeff = 10.0,
@@ -110,11 +110,11 @@ class MSJ extends BMRModel {
     aCoeff = 5.0,
     sCoeff = 5.0,
   }) : super(
-    mCoeff: mCoeff,
-    hCoeff: hCoeff,
-    aCoeff: aCoeff,
-    sCoeff: sCoeff,
-  );
+          mCoeff: mCoeff,
+          hCoeff: hCoeff,
+          aCoeff: aCoeff,
+          sCoeff: sCoeff,
+        );
 
   MSJ.female({
     mCoeff = 10.0,
@@ -122,9 +122,43 @@ class MSJ extends BMRModel {
     aCoeff = 5.0,
     sCoeff = -161.0,
   }) : super(
-    mCoeff: mCoeff,
-    hCoeff: hCoeff,
-    aCoeff: aCoeff,
-    sCoeff: sCoeff,
-  );
+          mCoeff: mCoeff,
+          hCoeff: hCoeff,
+          aCoeff: aCoeff,
+          sCoeff: sCoeff,
+        );
+}
+
+BMRModel getAppropriateModel(int model_id, int gender_id) {
+  switch (model_id) {
+    case 1:
+      switch (gender_id) {
+        case 1:
+          return HBO.male();
+        case 2:
+          return HBO.female();
+        default:
+          return HBO();
+      }
+      break;
+    case 2:
+      switch (gender_id) {
+        case 1:
+          return HBR.male();
+        case 2:
+          return HBR.female();
+        default:
+          return HBR();
+      }
+      break;
+    default:
+      switch (gender_id) {
+        case 1:
+          return MSJ.male();
+        case 2:
+          return MSJ.female();
+        default:
+          return MSJ();
+      }
+  }
 }

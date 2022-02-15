@@ -1,4 +1,7 @@
+import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:calorie_counter/custom_colors.dart';
+import 'package:calorie_counter/views/navigation/homePage.dart';
+import 'package:calorie_counter/views/navigation/settingsPage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -12,11 +15,18 @@ class NavigationPage extends StatefulWidget {
 class _NavigationPageState extends State<NavigationPage> {
   SharedPreferences? prefs;
   bool loaded = false;
+  int currentPage = 0;
 
   @override
   void initState() {
     super.initState();
     _getPreferences();
+  }
+
+  @override
+  void dispose() {
+    BackButtonInterceptor.remove(homeInterceptor);
+    super.dispose();
   }
 
   void _getPreferences() async {
@@ -27,6 +37,51 @@ class _NavigationPageState extends State<NavigationPage> {
     });
   }
 
+  void _selectNavItem(int selectedIndex) {
+    if (selectedIndex == currentPage)
+      return;
+    else if (selectedIndex != 0 && currentPage == 0) {
+      BackButtonInterceptor.add(
+        homeInterceptor,
+        zIndex: 1,
+        ifNotYetIntercepted: true,
+      );
+    } else if (selectedIndex == 0) {
+      BackButtonInterceptor.remove(homeInterceptor);
+    }
+    setState(() {
+      currentPage = selectedIndex;
+    });
+  }
+
+  bool homeInterceptor(bool stopDefaultButtonEvent, RouteInfo info) {
+    BackButtonInterceptor.remove(homeInterceptor);
+    setState(() {
+      currentPage = 0;
+    });
+    return true;
+  }
+
+  static const List<String> pageTitles = [
+    "CalorieCounter",
+    "Napredak",
+    "Postavke",
+    "Odabir Datuma",
+    "Nutritivne Vrijednosti",
+    "Administracija"
+  ];
+
+  Widget _getPageWidget() {
+    switch (currentPage) {
+      case 0:
+        return HomePage();
+      case 2:
+        return SettingsPage();
+      default:
+        return Container();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,19 +89,29 @@ class _NavigationPageState extends State<NavigationPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text("CalorieCounter"),
+        title: Text(pageTitles[currentPage]),
+        leading: currentPage == 0
+            ? null
+            : IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: () => _selectNavItem(0),
+              ),
         titleTextStyle: TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 20,
         ),
         centerTitle: false,
-        actions: [
-          IconButton(onPressed: () {}, icon: FaIcon(FontAwesomeIcons.server)),
-          IconButton(onPressed: () {}, icon: FaIcon(FontAwesomeIcons.chartPie)),
-          IconButton(
-              onPressed: () {},
-              icon: FaIcon(FontAwesomeIcons.solidCalendarAlt)),
-        ],
+        actions: currentPage == 0
+            ? [
+                IconButton(
+                    onPressed: () {}, icon: FaIcon(FontAwesomeIcons.server)),
+                IconButton(
+                    onPressed: () {}, icon: FaIcon(FontAwesomeIcons.chartPie)),
+                IconButton(
+                    onPressed: () {},
+                    icon: FaIcon(FontAwesomeIcons.solidCalendarAlt)),
+              ]
+            : [],
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -64,6 +129,8 @@ class _NavigationPageState extends State<NavigationPage> {
           elevation: 0,
           unselectedItemColor: inactiveIndicator,
           selectedItemColor: mainColorLight,
+          onTap: _selectNavItem,
+          currentIndex: currentPage,
           items: [
             BottomNavigationBarItem(
               label: "Početna",
@@ -102,12 +169,7 @@ class _NavigationPageState extends State<NavigationPage> {
         ),
       ),
       body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(prefs != null ? prefs!.getString("token").toString() : ""),
-          ],
-        ),
+        child: _getPageWidget(),
       ),
     );
   }

@@ -79,6 +79,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
         .get("http://10.0.2.2:3000/attributes/weekly_goals/" +
             widget.goal_type.toString())
         .then((response) {
+      print(response);
       setState(() {
         weeklyGoalsList = widget.goal_type == 1
             ? response.data.reversed.toList()

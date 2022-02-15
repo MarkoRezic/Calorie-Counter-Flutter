@@ -37,6 +37,7 @@ dependencies:
   dio: ^4.0.0
   shared_preferences: ^2.0.7
   font_awesome_flutter: ^9.2.0
+  back_button_interceptor: ^5.0.1
 
 dev_dependencies:
   flutter_test:

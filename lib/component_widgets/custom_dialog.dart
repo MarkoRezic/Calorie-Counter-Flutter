@@ -1,4 +1,6 @@
 import 'package:calorie_counter/component_widgets/transparent_outlined_button.dart';
+import 'package:calorie_counter/utils/cache_manager.dart';
+import 'package:calorie_counter/views/navigationPage.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +37,13 @@ class _CustomDialogState extends State<CustomDialog> {
       if (response.data["error"] == 0) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString("token", response.data["token"]);
-        Navigator.pop(context, true);
+        CacheManager.cacheData("user", response.data["user"]);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => NavigationPage(),
+          ),
+        );
       } else {
         setState(() {
           loading = false;
