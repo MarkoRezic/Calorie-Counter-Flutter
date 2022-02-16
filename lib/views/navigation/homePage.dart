@@ -20,8 +20,28 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    if (CacheManager.getData("dayOffset") != null) {
+      setState(() {
+        dayOffset = CacheManager.getData("dayOffset");
+      });
+    } else {
+      CacheManager.cacheData("dayOffset", dayOffset);
+    }
     _getMealTypes();
     _getDiaryEntries();
+  }
+
+  @override
+  void didUpdateWidget(covariant HomePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (CacheManager.getData("dayOffset") != dayOffset) {
+      setState(() {
+        dayOffset = CacheManager.getData("dayOffset") ?? 0;
+        diaryEntries = null;
+        mealEntriesMap = {};
+        _getDiaryEntries();
+      });
+    }
   }
 
   void _getMealTypes() {
@@ -140,6 +160,7 @@ class _HomePageState extends State<HomePage> {
                   onPressed: () {
                     setState(() {
                       dayOffset--;
+                      CacheManager.cacheData("dayOffset", dayOffset);
                       setState(() {
                         diaryEntries = null;
                         mealEntriesMap = {};
@@ -170,6 +191,7 @@ class _HomePageState extends State<HomePage> {
                   onPressed: () {
                     setState(() {
                       dayOffset++;
+                      CacheManager.cacheData("dayOffset", dayOffset);
                       setState(() {
                         diaryEntries = null;
                         mealEntriesMap = {};
