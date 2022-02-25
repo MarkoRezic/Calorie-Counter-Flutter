@@ -1,5 +1,6 @@
 import 'package:calorie_counter/custom_colors.dart';
 import 'package:calorie_counter/utils/cache_manager.dart';
+import 'package:calorie_counter/views/navigation/searchPage.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -119,7 +120,7 @@ class _HomePageState extends State<HomePage> {
 
   int _getTotalMealCalories(int indexMeal) {
     double sum = 0;
-    print("TEST" + mealEntriesMap[mealTypeList[indexMeal]["name"]].toString());
+    //print("TEST" + mealEntriesMap[mealTypeList[indexMeal]["name"]].toString());
     for (int indexEntry = 0;
         indexEntry <
             (mealEntriesMap[mealTypeList[indexMeal]["name"]] ?? []).length;
@@ -330,7 +331,8 @@ class _HomePageState extends State<HomePage> {
         ),
         mealTypeList.length == 0
             ? Expanded(
-                child: Center(child: CircularProgressIndicator()),
+                child: Center(
+                    child: RepaintBoundary(child: CircularProgressIndicator())),
               )
             : Expanded(
                 child: Padding(
@@ -462,8 +464,10 @@ class _HomePageState extends State<HomePage> {
                                         ? Center(
                                             child: Padding(
                                               padding: EdgeInsets.all(10),
-                                              child:
-                                                  CircularProgressIndicator(),
+                                              child: RepaintBoundary(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              ),
                                             ),
                                           )
                                         : Row(
@@ -471,7 +475,21 @@ class _HomePageState extends State<HomePage> {
                                               Expanded(
                                                 child: Material(
                                                   child: InkWell(
-                                                    onTap: () {},
+                                                    onTap: () {
+                                                      Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (BuildContext
+                                                                  context) =>
+                                                              SearchPage(
+                                                            mealType:
+                                                                mealTypeList[
+                                                                    indexMeal ~/
+                                                                        2],
+                                                          ),
+                                                        ),
+                                                      );
+                                                    },
                                                     child: Padding(
                                                       padding:
                                                           EdgeInsets.all(15),

@@ -72,6 +72,12 @@ class _NavigationPageState extends State<NavigationPage> {
     "Administracija"
   ];
 
+  ///PAGE NUMBERS
+  ///0 - HOME
+  ///1 - PROGRESS
+  ///2 - SETTINGS
+  ///3 - NUTRITION
+  ///4 - DATABASE
   Widget _getPageWidget() {
     switch (currentPage) {
       case 0:

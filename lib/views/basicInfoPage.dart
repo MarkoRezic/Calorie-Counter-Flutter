@@ -488,11 +488,11 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                   controller: heightController,
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(
-                        new RegExp("(^[0-9]{1,3}[.,]?[0-9]{0,2}\$)")),
+                        RegExp("(^[0-9]{1,3}[.,]?[0-9]{0,2}\$)")),
                   ],
-                  keyboardType: TextInputType.numberWithOptions(
+                  keyboardType: const TextInputType.numberWithOptions(
                       signed: false, decimal: true),
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                   ),
                   validator: (value) {
