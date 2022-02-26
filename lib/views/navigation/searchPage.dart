@@ -21,6 +21,7 @@ class _SearchPageState extends State<SearchPage> {
   TextEditingController searchController = TextEditingController();
   dynamic productList = [];
   final _debouncer = Debouncer(milliseconds: 500);
+  bool _hasAdded = false;
 
   @override
   void dispose() {
@@ -48,6 +49,27 @@ class _SearchPageState extends State<SearchPage> {
     setState(() {
       _loading = false;
     });
+  }
+
+  void _popAddCallback(value) {
+    if (value != null) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            value["message"],
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white),
+          ),
+          backgroundColor: value["error"] == 0
+              ? mainColor.withOpacity(0.8)
+              : value["error"] == 1
+                  ? errorColor.withOpacity(0.8)
+                  : null,
+        ),
+      );
+    }
   }
 
   @override
@@ -144,7 +166,7 @@ class _SearchPageState extends State<SearchPage> {
                                       product: product,
                                     ),
                                   ),
-                                );
+                                ).then((value) => _popAddCallback(value));
                               },
                               child: Container(
                                 padding: EdgeInsets.all(15),

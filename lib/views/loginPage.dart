@@ -47,8 +47,10 @@ class _LoginPageState extends State<LoginPage> {
         CacheManager.cacheData("user", user);
         BMRModel bmrModel =
             getAppropriateModel(user["model_id"], user["gender_id"]);
-        CacheManager.cacheData("dailyCalories",
-            bmrModel.calculate(user["weight"], user["height"], user["age"]));
+        CacheManager.cacheData(
+            "dailyCalories",
+            bmrModel.calculate(user["weight"], user["height"], user["age"]) +
+                user["weekly_calorie_diff"]);
         Navigator.push(
           context,
           MaterialPageRoute(

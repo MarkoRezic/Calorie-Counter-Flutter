@@ -6,6 +6,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import 'editPage.dart';
+
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
@@ -68,7 +70,6 @@ class _HomePageState extends State<HomePage> {
             "-" +
             date.day.toString())
         .then((response) {
-      //print(response);
       setState(() {
         diaryEntries = response.data;
         _mapMealEntries();
@@ -142,6 +143,28 @@ class _HomePageState extends State<HomePage> {
     return totalSum;
   }
 
+  void _popEditCallback(value) {
+    if (value != null) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            value["message"],
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white),
+          ),
+          backgroundColor: value["error"] == 0
+              ? mainColor.withOpacity(0.8)
+              : value["error"] == 1
+                  ? errorColor.withOpacity(0.8)
+                  : null,
+        ),
+      );
+      _getDiaryEntries();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -162,11 +185,9 @@ class _HomePageState extends State<HomePage> {
                     setState(() {
                       dayOffset--;
                       CacheManager.cacheData("dayOffset", dayOffset);
-                      setState(() {
-                        diaryEntries = null;
-                        mealEntriesMap = {};
-                        _getDiaryEntries();
-                      });
+                      diaryEntries = null;
+                      mealEntriesMap = {};
+                      _getDiaryEntries();
                     });
                   },
                   icon: FaIcon(FontAwesomeIcons.chevronLeft),
@@ -181,6 +202,10 @@ class _HomePageState extends State<HomePage> {
                       onTap: () {
                         setState(() {
                           dayOffset = 0;
+                          CacheManager.cacheData("dayOffset", dayOffset);
+                          diaryEntries = null;
+                          mealEntriesMap = {};
+                          _getDiaryEntries();
                         });
                       },
                     ),
@@ -193,11 +218,9 @@ class _HomePageState extends State<HomePage> {
                     setState(() {
                       dayOffset++;
                       CacheManager.cacheData("dayOffset", dayOffset);
-                      setState(() {
-                        diaryEntries = null;
-                        mealEntriesMap = {};
-                        _getDiaryEntries();
-                      });
+                      diaryEntries = null;
+                      mealEntriesMap = {};
+                      _getDiaryEntries();
                     });
                   },
                   icon: FaIcon(FontAwesomeIcons.chevronRight),
@@ -394,9 +417,20 @@ class _HomePageState extends State<HomePage> {
                                             ["name"]]![indexEntry];
                                     return Material(
                                       child: InkWell(
-                                        onTap: () {},
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (BuildContext context) =>
+                                                  EditPage(
+                                                diaryEntry: currentEntry,
+                                              ),
+                                            ),
+                                          ).then((value) =>
+                                              _popEditCallback(value));
+                                        },
                                         child: Container(
-                                          padding: EdgeInsets.all(15),
+                                          padding: const EdgeInsets.all(15),
                                           decoration: BoxDecoration(
                                             border: Border(
                                               bottom: BorderSide(
@@ -440,6 +474,7 @@ class _HomePageState extends State<HomePage> {
                                                 (currentEntry[
                                                             "serving_calories"] *
                                                         currentEntry["amount"])
+                                                    .round()
                                                     .toString(),
                                                 style: TextStyle(
                                                   fontSize: 18,
@@ -488,7 +523,8 @@ class _HomePageState extends State<HomePage> {
                                                                         2],
                                                           ),
                                                         ),
-                                                      );
+                                                      ).then((value) =>
+                                                          _getDiaryEntries());
                                                     },
                                                     child: Padding(
                                                       padding:
