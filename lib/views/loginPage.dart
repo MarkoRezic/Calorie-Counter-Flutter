@@ -6,13 +6,14 @@ import 'package:calorie_counter/utils/bmr_model.dart';
 import 'package:calorie_counter/utils/cache_manager.dart';
 import 'package:calorie_counter/views/basicInfoPage.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'navigationPage.dart';
 
 class LoginPage extends StatefulWidget {
+  const LoginPage({Key? key}) : super(key: key);
+
   @override
   _LoginPageState createState() => _LoginPageState();
 }
@@ -42,7 +43,6 @@ class _LoginPageState extends State<LoginPage> {
       await dio
           .get("http://10.0.2.2:3000/users/token/" + prefs!.getString('token')!)
           .then((response) {
-        print(response);
         dynamic user = response.data["user"];
         CacheManager.cacheData("user", user);
         BMRModel bmrModel =
@@ -117,13 +117,12 @@ class _LoginPageState extends State<LoginPage> {
                           LightGreenButton(
                             text: 'IZGUBI KILAŽU',
                             onTap: () {
-                              print('tapped');
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (BuildContext context) =>
                                       const BasicInfoPage(
-                                    goal_type: 1,
+                                    goalType: 1,
                                   ),
                                 ),
                               );
@@ -132,13 +131,12 @@ class _LoginPageState extends State<LoginPage> {
                           LightGreenButton(
                             text: 'ODRŽAVAJ KILAŽU',
                             onTap: () {
-                              print('tapped');
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (BuildContext context) =>
                                       const BasicInfoPage(
-                                    goal_type: 2,
+                                    goalType: 2,
                                   ),
                                 ),
                               );
@@ -147,13 +145,12 @@ class _LoginPageState extends State<LoginPage> {
                           LightGreenButton(
                             text: 'IZGRADI MIŠIĆE',
                             onTap: () {
-                              print('tapped');
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (BuildContext context) =>
                                       const BasicInfoPage(
-                                    goal_type: 3,
+                                    goalType: 3,
                                   ),
                                 ),
                               );
@@ -166,7 +163,7 @@ class _LoginPageState extends State<LoginPage> {
                   ],
                 ),
                 const Spacer(),
-                Text(
+                const Text(
                   'Imate račun?',
                   style: TextStyle(
                     fontSize: 16,
@@ -185,15 +182,12 @@ class _LoginPageState extends State<LoginPage> {
                             text: 'PRIJAVI SE',
                             hasShadow: false,
                             onTap: () {
-                              print('tapped');
                               showDialog(
                                 context: context,
                                 builder: (BuildContext context) {
                                   return CustomDialog();
                                 },
-                              ).then((value) {
-                                print(value);
-                              });
+                              ).then((value) {});
                             },
                           ),
                         ],
@@ -202,7 +196,7 @@ class _LoginPageState extends State<LoginPage> {
                     const Spacer(),
                   ],
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 20,
                 ),
               ],
@@ -210,7 +204,7 @@ class _LoginPageState extends State<LoginPage> {
             !loaded
                 ? Container(
                     color: Colors.black.withOpacity(0.6),
-                    child: Center(
+                    child: const Center(
                       child: CircularProgressIndicator(
                         color: Colors.white,
                       ),

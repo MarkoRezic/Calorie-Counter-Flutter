@@ -3,7 +3,6 @@ import 'package:calorie_counter/component_widgets/page_indicator_row.dart';
 import 'package:calorie_counter/component_widgets/transparent_outlined_button.dart';
 import 'package:calorie_counter/custom_colors.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,8 +10,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'navigationPage.dart';
 
 class BasicInfoPage extends StatefulWidget {
-  final int goal_type;
-  const BasicInfoPage({Key? key, required this.goal_type}) : super(key: key);
+  final int goalType;
+  const BasicInfoPage({Key? key, required this.goalType}) : super(key: key);
 
   @override
   _BasicInfoPageState createState() => _BasicInfoPageState();
@@ -77,11 +76,10 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
     Dio dio = Dio();
     dio
         .get("http://10.0.2.2:3000/attributes/weekly_goals/" +
-            widget.goal_type.toString())
+            widget.goalType.toString())
         .then((response) {
-      print(response);
       setState(() {
-        weeklyGoalsList = widget.goal_type == 1
+        weeklyGoalsList = widget.goalType == 1
             ? response.data.reversed.toList()
             : response.data;
       });
@@ -117,7 +115,6 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
         "username": usernameController.text,
       },
     ).then((response) {
-      print(response);
       setState(() {
         if (response.data["error"] == 0) {
           showErrorUsername = false;
@@ -134,7 +131,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
 
   bool _isInvalidGoal() {
     setState(() {
-      if (widget.goal_type == 1) {
+      if (widget.goalType == 1) {
         setState(() {
           showErrorGoalWeight = num.parse(goalWeightController.text) <
                   num.parse(weightController.text)
@@ -144,7 +141,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
               ? "ciljana težina mora biti manja od trenutne"
               : "";
         });
-      } else if (widget.goal_type == 3) {
+      } else if (widget.goalType == 3) {
         setState(() {
           showErrorGoalWeight = num.parse(goalWeightController.text) >
                   num.parse(weightController.text)
@@ -171,7 +168,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
         "password": passwordController.text,
         "height": num.parse(heightController.text.replaceAll(",", ".")),
         "weight": num.parse(weightController.text.replaceAll(",", ".")),
-        "goal_weight": widget.goal_type == 2
+        "goal_weight": widget.goalType == 2
             ? num.parse(weightController.text.replaceAll(",", "."))
             : num.parse(goalWeightController.text.replaceAll(",", ".")),
         "age": num.parse(ageController.text),
@@ -189,7 +186,6 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
           "password": passwordController.text,
         },
       ).then((response) async {
-        print(response);
         if (response.data["error"] == 0) {
           SharedPreferences prefs = await SharedPreferences.getInstance();
           prefs.setString("token", response.data["token"]);
@@ -258,7 +254,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
 
       Container(
         alignment: Alignment.center,
-        padding: EdgeInsets.all(30),
+        padding: const EdgeInsets.all(30),
         child: SingleChildScrollView(
           child: Form(
             key: formKey1,
@@ -267,11 +263,11 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
               children: [
                 TextFormField(
                   controller: usernameController,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                   ),
                   validator: (value) {
-                    if (value == null || value.length == 0) {
+                    if (value == null || value.isEmpty) {
                       return 'Molimo unesite korisničko ime.';
                     } else if (value.length < 3) {
                       return 'Korisničko ime mora imati barem 3 slova.';
@@ -281,7 +277,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white.withOpacity(0.15),
-                    enabledBorder: UnderlineInputBorder(
+                    enabledBorder: const UnderlineInputBorder(
                       borderSide: BorderSide(
                         color: Colors.white,
                         width: 2,
@@ -296,24 +292,24 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                     hintStyle: TextStyle(
                       color: Colors.white.withOpacity(0.4),
                     ),
-                    errorText: errorUsername.length == 0 ? null : errorUsername,
-                    errorStyle: TextStyle(
+                    errorText: errorUsername.isEmpty ? null : errorUsername,
+                    errorStyle: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: errorColor,
                     ),
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 20,
                 ),
                 TextFormField(
                   controller: passwordController,
                   obscureText: !showPassword,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                   ),
                   validator: (value) {
-                    if (value == null || value.length == 0) {
+                    if (value == null || value.isEmpty) {
                       return 'Molimo unesite šifru.';
                     } else if (value.length < 8) {
                       return 'Šifra mora imati barem 3 slova.';
@@ -326,7 +322,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                     hintStyle: TextStyle(
                       color: Colors.white.withOpacity(0.4),
                     ),
-                    enabledBorder: UnderlineInputBorder(
+                    enabledBorder: const UnderlineInputBorder(
                       borderSide: BorderSide(
                         color: Colors.white,
                         width: 2,
@@ -348,23 +344,23 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                       fontWeight: FontWeight.bold,
                       color: Colors.white.withOpacity(0.6),
                     ),
-                    errorStyle: TextStyle(
+                    errorStyle: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: errorColor,
                     ),
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 20,
                 ),
                 TextFormField(
                   controller: repasswordController,
                   obscureText: !showRepassword,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                   ),
                   validator: (value) {
-                    if (value == null || value.length == 0) {
+                    if (value == null || value.isEmpty) {
                       return 'Molimo ponovite šifru.';
                     } else if (value != passwordController.text) {
                       return 'Šifre se ne podudaraju.';
@@ -377,7 +373,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                     hintStyle: TextStyle(
                       color: Colors.white.withOpacity(0.4),
                     ),
-                    enabledBorder: UnderlineInputBorder(
+                    enabledBorder: const UnderlineInputBorder(
                       borderSide: BorderSide(
                         color: Colors.white,
                         width: 2,
@@ -399,17 +395,17 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                       fontWeight: FontWeight.bold,
                       color: Colors.white.withOpacity(0.6),
                     ),
-                    errorStyle: TextStyle(
+                    errorStyle: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: errorColor,
                     ),
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 20,
                 ),
-                widget.goal_type != 2
-                    ? (weeklyGoalsList.length != 0
+                widget.goalType != 2
+                    ? (weeklyGoalsList.isNotEmpty
                         ? DropdownButtonFormField(
                             isExpanded: true,
                             dropdownColor: mainColorFill,
@@ -417,7 +413,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                             decoration: InputDecoration(
                               filled: true,
                               fillColor: Colors.white.withOpacity(0.15),
-                              enabledBorder: UnderlineInputBorder(
+                              enabledBorder: const UnderlineInputBorder(
                                 borderSide: BorderSide(
                                   color: Colors.white,
                                   width: 2,
@@ -461,12 +457,12 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                                     weeklyGoalsList.indexOf(newValue);
                               });
                             })
-                        : CircularProgressIndicator())
+                        : const CircularProgressIndicator())
                     : Container(),
-                SizedBox(
+                const SizedBox(
                   height: 20,
                 ),
-                loading ? CircularProgressIndicator() : Container(),
+                loading ? const CircularProgressIndicator() : Container(),
               ],
             ),
           ),
@@ -477,7 +473,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
 
       Container(
         alignment: Alignment.center,
-        padding: EdgeInsets.all(30),
+        padding: const EdgeInsets.all(30),
         child: SingleChildScrollView(
           child: Form(
             key: formKey2,
@@ -496,7 +492,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                     color: Colors.white,
                   ),
                   validator: (value) {
-                    if (value == null || value.length == 0) {
+                    if (value == null || value.isEmpty) {
                       return 'Molimo unesite visinu.';
                     }
                     return null;
@@ -504,7 +500,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white.withOpacity(0.15),
-                    enabledBorder: UnderlineInputBorder(
+                    enabledBorder: const UnderlineInputBorder(
                       borderSide: BorderSide(
                         color: Colors.white,
                         width: 2,
@@ -515,14 +511,14 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                       fontWeight: FontWeight.bold,
                       color: Colors.white.withOpacity(0.6),
                     ),
-                    errorText: errorHeight.length == 0 ? null : errorHeight,
-                    errorStyle: TextStyle(
+                    errorText: errorHeight.isEmpty ? null : errorHeight,
+                    errorStyle: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: errorColor,
                     ),
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 20,
                 ),
                 TextFormField(
@@ -530,14 +526,14 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
                     FilteringTextInputFormatter.allow(
-                        new RegExp("(^[1-9][0-9]{0,2}\$)"))
+                        RegExp("(^[1-9][0-9]{0,2}\$)"))
                   ],
                   keyboardType: TextInputType.number,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                   ),
                   validator: (value) {
-                    if (value == null || value.length == 0) {
+                    if (value == null || value.isEmpty) {
                       return 'Molimo unesite dob.';
                     }
                     return null;
@@ -545,7 +541,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white.withOpacity(0.15),
-                    enabledBorder: UnderlineInputBorder(
+                    enabledBorder: const UnderlineInputBorder(
                       borderSide: BorderSide(
                         color: Colors.white,
                         width: 2,
@@ -556,24 +552,24 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                       fontWeight: FontWeight.bold,
                       color: Colors.white.withOpacity(0.6),
                     ),
-                    errorText: errorAge.length == 0 ? null : errorAge,
-                    errorStyle: TextStyle(
+                    errorText: errorAge.isEmpty ? null : errorAge,
+                    errorStyle: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: errorColor,
                     ),
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 20,
                 ),
-                genderList.length != 0
+                genderList.isNotEmpty
                     ? DropdownButtonFormField(
                         dropdownColor: mainColorFill,
                         iconEnabledColor: Colors.white,
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: Colors.white.withOpacity(0.15),
-                          enabledBorder: UnderlineInputBorder(
+                          enabledBorder: const UnderlineInputBorder(
                             borderSide: BorderSide(
                               color: Colors.white,
                               width: 2,
@@ -604,7 +600,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                                 genderList.indexOf(newValue ?? {});
                           });
                         })
-                    : CircularProgressIndicator(),
+                    : const CircularProgressIndicator(),
               ],
             ),
           ),
@@ -615,7 +611,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
 
       Container(
         alignment: Alignment.center,
-        padding: EdgeInsets.all(30),
+        padding: const EdgeInsets.all(30),
         child: SingleChildScrollView(
           child: Form(
             key: formKey3,
@@ -626,15 +622,15 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                   controller: weightController,
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(
-                        new RegExp("(^[0-9]{1,3}[.,]?[0-9]{0,2}\$)")),
+                        RegExp("(^[0-9]{1,3}[.,]?[0-9]{0,2}\$)")),
                   ],
-                  keyboardType: TextInputType.numberWithOptions(
+                  keyboardType: const TextInputType.numberWithOptions(
                       signed: false, decimal: true),
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                   ),
                   validator: (value) {
-                    if (value == null || value.length == 0) {
+                    if (value == null || value.isEmpty) {
                       return 'Molimo unesite težinu.';
                     }
                     return null;
@@ -642,7 +638,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white.withOpacity(0.15),
-                    enabledBorder: UnderlineInputBorder(
+                    enabledBorder: const UnderlineInputBorder(
                       borderSide: BorderSide(
                         color: Colors.white,
                         width: 2,
@@ -653,30 +649,30 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                       fontWeight: FontWeight.bold,
                       color: Colors.white.withOpacity(0.6),
                     ),
-                    errorText: errorWeight.length == 0 ? null : errorWeight,
-                    errorStyle: TextStyle(
+                    errorText: errorWeight.isEmpty ? null : errorWeight,
+                    errorStyle: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: errorColor,
                     ),
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 20,
                 ),
-                widget.goal_type != 2
+                widget.goalType != 2
                     ? TextFormField(
                         controller: goalWeightController,
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(
-                              new RegExp("(^[0-9]{1,3}[.,]?[0-9]{0,2}\$)")),
+                              RegExp("(^[0-9]{1,3}[.,]?[0-9]{0,2}\$)")),
                         ],
-                        keyboardType: TextInputType.numberWithOptions(
+                        keyboardType: const TextInputType.numberWithOptions(
                             signed: false, decimal: true),
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                         ),
                         validator: (value) {
-                          if (value == null || value.length == 0) {
+                          if (value == null || value.isEmpty) {
                             return 'Molimo unesite ciljanu težinu.';
                           }
                           return null;
@@ -684,7 +680,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: Colors.white.withOpacity(0.15),
-                          enabledBorder: UnderlineInputBorder(
+                          enabledBorder: const UnderlineInputBorder(
                             borderSide: BorderSide(
                               color: Colors.white,
                               width: 2,
@@ -695,10 +691,9 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                             fontWeight: FontWeight.bold,
                             color: Colors.white.withOpacity(0.6),
                           ),
-                          errorText: errorGoalWeight.length == 0
-                              ? null
-                              : errorGoalWeight,
-                          errorStyle: TextStyle(
+                          errorText:
+                              errorGoalWeight.isEmpty ? null : errorGoalWeight,
+                          errorStyle: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: errorColor,
                           ),
@@ -715,14 +710,14 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
 
       Container(
         alignment: Alignment.center,
-        padding: EdgeInsets.all(30),
+        padding: const EdgeInsets.all(30),
         child: SingleChildScrollView(
           child: Form(
             key: formKey4,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                activityLevelList.length != 0
+                activityLevelList.isNotEmpty
                     ? DropdownButtonFormField(
                         isExpanded: true,
                         dropdownColor: mainColorFill,
@@ -730,7 +725,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: Colors.white.withOpacity(0.15),
-                          enabledBorder: UnderlineInputBorder(
+                          enabledBorder: const UnderlineInputBorder(
                             borderSide: BorderSide(
                               color: Colors.white,
                               width: 2,
@@ -773,11 +768,11 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                                 activityLevelList.indexOf(newValue ?? {});
                           });
                         })
-                    : CircularProgressIndicator(),
-                SizedBox(
+                    : const CircularProgressIndicator(),
+                const SizedBox(
                   height: 20,
                 ),
-                loading ? CircularProgressIndicator() : Container(),
+                loading ? const CircularProgressIndicator() : Container(),
               ],
             ),
           ),
@@ -816,7 +811,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
             Expanded(
               child: PageView.builder(
                   controller: pageController,
-                  physics: NeverScrollableScrollPhysics(),
+                  physics: const NeverScrollableScrollPhysics(),
                   onPageChanged: (int page) {
                     setState(() {
                       selectedPage = page;

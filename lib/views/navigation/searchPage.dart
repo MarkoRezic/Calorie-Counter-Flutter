@@ -1,16 +1,16 @@
 import 'package:calorie_counter/custom_colors.dart';
 import 'package:calorie_counter/utils/debouncer.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'entryPage.dart';
 
 class SearchPage extends StatefulWidget {
-  dynamic mealType;
+  final dynamic mealType;
 
-  SearchPage({required this.mealType});
+  const SearchPage({Key? key, required this.mealType}) : super(key: key);
 
   @override
   _SearchPageState createState() => _SearchPageState();
@@ -21,12 +21,36 @@ class _SearchPageState extends State<SearchPage> {
   TextEditingController searchController = TextEditingController();
   dynamic productList = [];
   final _debouncer = Debouncer(milliseconds: 500);
-  bool _hasAdded = false;
+  List<dynamic> _productHistory = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _getHistory();
+  }
 
   @override
   void dispose() {
     searchController.dispose();
     super.dispose();
+  }
+
+  void _getHistory() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (prefs.getString("searchHistory") == null) return;
+    String searchHistory = prefs.getString("searchHistory")!;
+    print(searchHistory);
+    Dio dio = Dio();
+    dio
+        .get("http://10.0.2.2:3000/products/history/" + searchHistory)
+        .then((response) {
+      //print(response);
+      if (mounted) {
+        setState(() {
+          _productHistory = response.data;
+        });
+      }
+    });
   }
 
   void _searchProducts() {
@@ -42,17 +66,43 @@ class _SearchPageState extends State<SearchPage> {
       if (mounted) {
         setState(() {
           productList = response.data;
+          setState(() {
+            _loading = false;
+          });
         });
       }
     });
-    if (!mounted) return;
-    setState(() {
-      _loading = false;
-    });
   }
 
-  void _popAddCallback(value) {
+  bool _isProductInHistory(product) {
+    for (int i = 0; i < _productHistory.length; i++) {
+      if (_productHistory[i]["product_id"] == product["product_id"]) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void _popAddCallback(value, product) {
     if (value != null) {
+      if (value["error"] == 0) {
+        SharedPreferences.getInstance().then((prefs) {
+          if (_isProductInHistory(product)) {
+            _productHistory.remove(_productHistory
+                .firstWhere((p) => p["product_id"] == product["product_id"]));
+            _productHistory.insert(0, product);
+          } else {
+            if (_productHistory.length >= 30) _productHistory.removeLast();
+            _productHistory.insert(0, product);
+          }
+          prefs.setString(
+              "searchHistory",
+              _productHistory
+                  .map((p) => p["product_id"].toString())
+                  .toList()
+                  .join(","));
+        });
+      }
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -80,14 +130,16 @@ class _SearchPageState extends State<SearchPage> {
       appBar: AppBar(
         automaticallyImplyLeading: true,
         title: Text(widget.mealType["name"].toString()),
-        titleTextStyle: TextStyle(
+        titleTextStyle: const TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 20,
         ),
         centerTitle: false,
         actions: [
-          IconButton(onPressed: () {}, icon: FaIcon(FontAwesomeIcons.plus)),
-          IconButton(onPressed: () {}, icon: FaIcon(FontAwesomeIcons.barcode)),
+          IconButton(
+              onPressed: () {}, icon: const FaIcon(FontAwesomeIcons.plus)),
+          IconButton(
+              onPressed: () {}, icon: const FaIcon(FontAwesomeIcons.barcode)),
         ],
       ),
       body: SafeArea(
@@ -96,7 +148,7 @@ class _SearchPageState extends State<SearchPage> {
             Container(
               decoration: BoxDecoration(boxShadow: [
                 BoxShadow(
-                    offset: Offset(0, 2),
+                    offset: const Offset(0, 2),
                     blurRadius: 4,
                     color: Colors.black.withOpacity(0.4)),
               ], color: Colors.white),
@@ -105,7 +157,7 @@ class _SearchPageState extends State<SearchPage> {
                 children: [
                   Expanded(
                     child: Container(
-                      margin: EdgeInsets.all(20),
+                      margin: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: inputFillColor,
                         borderRadius: BorderRadius.circular(4),
@@ -123,7 +175,7 @@ class _SearchPageState extends State<SearchPage> {
                             _searchProducts();
                           });
                         },
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           hintText: 'Search',
                           prefixIcon: Icon(
                             Icons.search,
@@ -140,20 +192,15 @@ class _SearchPageState extends State<SearchPage> {
                 ],
               ),
             ),
-            _loading
+            searchController.text.length < 3
                 ? Expanded(
-                    child: Center(
-                        child: RepaintBoundary(
-                            child: CircularProgressIndicator())),
-                  )
-                : Expanded(
                     child: Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: ListView(
                         shrinkWrap: true,
-                        children: List.generate((productList ?? []).length,
+                        children: List.generate(_productHistory.length,
                             (indexProduct) {
-                          dynamic product = productList[indexProduct];
+                          dynamic product = _productHistory[indexProduct];
                           return Material(
                             child: InkWell(
                               onTap: () {
@@ -166,10 +213,11 @@ class _SearchPageState extends State<SearchPage> {
                                       product: product,
                                     ),
                                   ),
-                                ).then((value) => _popAddCallback(value));
+                                ).then(
+                                    (value) => _popAddCallback(value, product));
                               },
                               child: Container(
-                                padding: EdgeInsets.all(15),
+                                padding: const EdgeInsets.all(15),
                                 decoration: BoxDecoration(
                                   border: Border(
                                     bottom: BorderSide(
@@ -182,30 +230,40 @@ class _SearchPageState extends State<SearchPage> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Text(
-                                          product["name"],
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                          ),
+                                        const Padding(
+                                          padding: EdgeInsets.all(8.0),
+                                          child: Icon(Icons.history),
                                         ),
-                                        Text(
-                                          product["default_amount"].toString() +
-                                              product["measure_abbreviation"]
-                                                  .toString(),
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.grey,
-                                          ),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              product["name"],
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                              ),
+                                            ),
+                                            Text(
+                                              product["default_amount"]
+                                                      .toString() +
+                                                  product["measure_abbreviation"]
+                                                      .toString(),
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
                                     Text(
                                       product["serving_calories"].toString(),
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontSize: 18,
                                       ),
                                     ),
@@ -217,7 +275,88 @@ class _SearchPageState extends State<SearchPage> {
                         }),
                       ),
                     ),
-                  ),
+                  )
+                : _loading
+                    ? const Expanded(
+                        child: Center(
+                            child: RepaintBoundary(
+                                child: CircularProgressIndicator())),
+                      )
+                    : Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: ListView(
+                            shrinkWrap: true,
+                            children: List.generate((productList ?? []).length,
+                                (indexProduct) {
+                              dynamic product = productList[indexProduct];
+                              return Material(
+                                child: InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (BuildContext context) =>
+                                            EntryPage(
+                                          mealType: widget.mealType,
+                                          product: product,
+                                        ),
+                                      ),
+                                    ).then((value) =>
+                                        _popAddCallback(value, product));
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(15),
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide(
+                                          color: Colors.black.withOpacity(0.25),
+                                          width: 2,
+                                        ),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              product["name"],
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                              ),
+                                            ),
+                                            Text(
+                                              product["default_amount"]
+                                                      .toString() +
+                                                  product["measure_abbreviation"]
+                                                      .toString(),
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Text(
+                                          product["serving_calories"]
+                                              .toString(),
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                      ),
           ],
         ),
       ),

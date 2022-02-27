@@ -2,13 +2,14 @@ import 'package:calorie_counter/custom_colors.dart';
 import 'package:calorie_counter/utils/cache_manager.dart';
 import 'package:calorie_counter/views/navigation/searchPage.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'editPage.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
+
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -100,13 +101,13 @@ class _HomePageState extends State<HomePage> {
   ];
 
   String _getDateText() {
-    if (dayOffset == 0)
+    if (dayOffset == 0) {
       return "Danas";
-    else if (dayOffset == -1)
+    } else if (dayOffset == -1) {
       return "Jučer";
-    else if (dayOffset == 1)
+    } else if (dayOffset == 1) {
       return "Sutra";
-    else {
+    } else {
       final date = DateTime.now().add(Duration(days: dayOffset));
       return dayNames[date.weekday - 1] +
           ", " +
@@ -121,7 +122,6 @@ class _HomePageState extends State<HomePage> {
 
   int _getTotalMealCalories(int indexMeal) {
     double sum = 0;
-    //print("TEST" + mealEntriesMap[mealTypeList[indexMeal]["name"]].toString());
     for (int indexEntry = 0;
         indexEntry <
             (mealEntriesMap[mealTypeList[indexMeal]["name"]] ?? []).length;
@@ -131,7 +131,6 @@ class _HomePageState extends State<HomePage> {
           mealEntriesMap[mealTypeList[indexMeal]["name"]]![indexEntry]
               ["serving_calories"];
     }
-    print(sum);
     return sum.round();
   }
 
@@ -172,7 +171,7 @@ class _HomePageState extends State<HomePage> {
         Container(
           decoration: BoxDecoration(boxShadow: [
             BoxShadow(
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
                 blurRadius: 4,
                 color: Colors.black.withOpacity(0.4)),
           ], color: Colors.white),
@@ -190,7 +189,7 @@ class _HomePageState extends State<HomePage> {
                       _getDiaryEntries();
                     });
                   },
-                  icon: FaIcon(FontAwesomeIcons.chevronLeft),
+                  icon: const FaIcon(FontAwesomeIcons.chevronLeft),
                 ),
               ),
               Expanded(
@@ -223,18 +222,18 @@ class _HomePageState extends State<HomePage> {
                       _getDiaryEntries();
                     });
                   },
-                  icon: FaIcon(FontAwesomeIcons.chevronRight),
+                  icon: const FaIcon(FontAwesomeIcons.chevronRight),
                 ),
               ),
             ],
           ),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Container(
-          padding: EdgeInsets.all(15),
+          padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(boxShadow: [
             BoxShadow(
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
                 blurRadius: 4,
                 color: Colors.black.withOpacity(0.4)),
           ], color: Colors.white),
@@ -245,11 +244,11 @@ class _HomePageState extends State<HomePage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Row(
-                      children: [
+                      children: const [
                         Text("Pregled kalorija"),
                       ],
                     ),
-                    SizedBox(height: 15),
+                    const SizedBox(height: 15),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
@@ -260,9 +259,9 @@ class _HomePageState extends State<HomePage> {
                               Text(
                                 CacheManager.getData("dailyCalories")
                                     .toString(),
-                                style: TextStyle(fontSize: 20),
+                                style: const TextStyle(fontSize: 20),
                               ),
-                              Text(
+                              const Text(
                                 "Cilj",
                                 style: TextStyle(
                                   fontSize: 16,
@@ -275,7 +274,7 @@ class _HomePageState extends State<HomePage> {
                         Expanded(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
-                            children: [
+                            children: const [
                               Text(
                                 "-",
                                 style: TextStyle(fontSize: 20),
@@ -293,9 +292,9 @@ class _HomePageState extends State<HomePage> {
                             children: [
                               Text(
                                 _getTotalDayCalories().toString(),
-                                style: TextStyle(fontSize: 20),
+                                style: const TextStyle(fontSize: 20),
                               ),
-                              Text(
+                              const Text(
                                 "Unos",
                                 style: TextStyle(
                                   fontSize: 16,
@@ -308,7 +307,7 @@ class _HomePageState extends State<HomePage> {
                         Expanded(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
-                            children: [
+                            children: const [
                               Text(
                                 "=",
                                 style: TextStyle(fontSize: 20),
@@ -328,13 +327,13 @@ class _HomePageState extends State<HomePage> {
                                 (CacheManager.getData("dailyCalories") -
                                         _getTotalDayCalories())
                                     .toString(),
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                   color: mainColorLight,
                                 ),
                               ),
-                              Text(
+                              const Text(
                                 "Preostalo",
                                 style: TextStyle(
                                   fontSize: 16,
@@ -353,7 +352,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         mealTypeList.length == 0
-            ? Expanded(
+            ? const Expanded(
                 child: Center(
                     child: RepaintBoundary(child: CircularProgressIndicator())),
               )
@@ -362,21 +361,21 @@ class _HomePageState extends State<HomePage> {
                   padding: const EdgeInsets.only(top: 4),
                   child: ListView(
                     shrinkWrap: true,
-                    padding: EdgeInsets.only(top: 11),
+                    padding: const EdgeInsets.only(top: 11),
                     children: List.generate(
                       mealTypeList.length * 2,
                       (indexMeal) => indexMeal % 2 == 0
                           ? Container(
                               decoration: BoxDecoration(boxShadow: [
                                 BoxShadow(
-                                    offset: Offset(0, 2),
+                                    offset: const Offset(0, 2),
                                     blurRadius: 4,
                                     color: Colors.black.withOpacity(0.4)),
                               ], color: Colors.white),
                               child: Column(
                                 children: [
                                   Container(
-                                    padding: EdgeInsets.all(15),
+                                    padding: const EdgeInsets.all(15),
                                     decoration: BoxDecoration(
                                       border: Border(
                                         bottom: BorderSide(
@@ -391,7 +390,7 @@ class _HomePageState extends State<HomePage> {
                                       children: [
                                         Text(
                                           mealTypeList[indexMeal ~/ 2]["name"],
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontSize: 20,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -399,7 +398,7 @@ class _HomePageState extends State<HomePage> {
                                         Text(
                                           _getTotalMealCalories(indexMeal ~/ 2)
                                               .toString(),
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontSize: 18,
                                           ),
                                         ),
@@ -451,7 +450,7 @@ class _HomePageState extends State<HomePage> {
                                                   Text(
                                                     currentEntry[
                                                         "product_name"],
-                                                    style: TextStyle(
+                                                    style: const TextStyle(
                                                       fontSize: 18,
                                                     ),
                                                   ),
@@ -463,7 +462,7 @@ class _HomePageState extends State<HomePage> {
                                                         currentEntry[
                                                                 "measure_abbreviation"]
                                                             .toString(),
-                                                    style: TextStyle(
+                                                    style: const TextStyle(
                                                       fontSize: 16,
                                                       color: Colors.grey,
                                                     ),
@@ -476,7 +475,7 @@ class _HomePageState extends State<HomePage> {
                                                         currentEntry["amount"])
                                                     .round()
                                                     .toString(),
-                                                style: TextStyle(
+                                                style: const TextStyle(
                                                   fontSize: 18,
                                                 ),
                                               ),
@@ -496,7 +495,7 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     ),
                                     child: diaryEntries == null
-                                        ? Center(
+                                        ? const Center(
                                             child: Padding(
                                               padding: EdgeInsets.all(10),
                                               child: RepaintBoundary(
@@ -526,7 +525,7 @@ class _HomePageState extends State<HomePage> {
                                                       ).then((value) =>
                                                           _getDiaryEntries());
                                                     },
-                                                    child: Padding(
+                                                    child: const Padding(
                                                       padding:
                                                           EdgeInsets.all(15),
                                                       child: Text(
@@ -548,7 +547,7 @@ class _HomePageState extends State<HomePage> {
                                 ],
                               ),
                             )
-                          : SizedBox(height: 15),
+                          : const SizedBox(height: 15),
                     ),
                   ),
                 ),

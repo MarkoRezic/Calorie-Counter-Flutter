@@ -3,12 +3,13 @@ import 'package:calorie_counter/custom_colors.dart';
 import 'package:calorie_counter/utils/cache_manager.dart';
 import 'package:calorie_counter/views/navigation/homePage.dart';
 import 'package:calorie_counter/views/navigation/settingsPage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NavigationPage extends StatefulWidget {
+  const NavigationPage({Key? key}) : super(key: key);
+
   @override
   _NavigationPageState createState() => _NavigationPageState();
 }
@@ -39,9 +40,9 @@ class _NavigationPageState extends State<NavigationPage> {
   }
 
   void _selectNavItem(int selectedIndex) {
-    if (selectedIndex == currentPage)
+    if (selectedIndex == currentPage) {
       return;
-    else if (selectedIndex != 0 && currentPage == 0) {
+    } else if (selectedIndex != 0 && currentPage == 0) {
       BackButtonInterceptor.add(
         homeInterceptor,
         zIndex: 1,
@@ -81,7 +82,7 @@ class _NavigationPageState extends State<NavigationPage> {
   Widget _getPageWidget() {
     switch (currentPage) {
       case 0:
-        return HomePage();
+        return const HomePage();
       case 2:
         return SettingsPage();
       default:
@@ -118,10 +119,10 @@ class _NavigationPageState extends State<NavigationPage> {
         leading: currentPage == 0
             ? null
             : IconButton(
-                icon: Icon(Icons.arrow_back),
+                icon: const Icon(Icons.arrow_back),
                 onPressed: () => _selectNavItem(0),
               ),
-        titleTextStyle: TextStyle(
+        titleTextStyle: const TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 20,
         ),
@@ -129,17 +130,19 @@ class _NavigationPageState extends State<NavigationPage> {
         actions: currentPage == 0
             ? [
                 IconButton(
-                    onPressed: () {}, icon: FaIcon(FontAwesomeIcons.server)),
+                    onPressed: () {},
+                    icon: const FaIcon(FontAwesomeIcons.server)),
                 IconButton(
-                    onPressed: () {}, icon: FaIcon(FontAwesomeIcons.chartPie)),
+                    onPressed: () {},
+                    icon: const FaIcon(FontAwesomeIcons.chartPie)),
                 IconButton(
                     onPressed: () => _selectDate(context),
-                    icon: FaIcon(FontAwesomeIcons.solidCalendarAlt)),
+                    icon: const FaIcon(FontAwesomeIcons.solidCalendarAlt)),
               ]
             : [],
       ),
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
               Color(0xFF888888),
@@ -160,34 +163,40 @@ class _NavigationPageState extends State<NavigationPage> {
             BottomNavigationBarItem(
               label: "Početna",
               icon: Container(
-                margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: FaIcon(FontAwesomeIcons.home),
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: const FaIcon(FontAwesomeIcons.home),
               ),
               activeIcon: Container(
-                margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: FaIcon(FontAwesomeIcons.home),
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: const FaIcon(FontAwesomeIcons.home),
               ),
             ),
             BottomNavigationBarItem(
               label: "Napredak",
               icon: Container(
-                margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: FaIcon(FontAwesomeIcons.chartLine),
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: const FaIcon(FontAwesomeIcons.chartLine),
               ),
               activeIcon: Container(
-                margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: FaIcon(FontAwesomeIcons.chartLine),
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: const FaIcon(FontAwesomeIcons.chartLine),
               ),
             ),
             BottomNavigationBarItem(
               label: "Postavke",
               icon: Container(
-                margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: FaIcon(FontAwesomeIcons.cog),
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: const FaIcon(FontAwesomeIcons.cog),
               ),
               activeIcon: Container(
-                margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: FaIcon(FontAwesomeIcons.cog),
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: const FaIcon(FontAwesomeIcons.cog),
               ),
             ),
           ],
