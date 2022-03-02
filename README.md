@@ -38,6 +38,6 @@ Preduvjeti:
 
 ## App screenshots
 ![Alt text](./UI%20Design/App%20Screenshots/Poèetni%20zaslon.PNG?raw=true "Poèetni zaslon")
-![Alt text](./UI%20Design/App%20Screenshots/Dnevnik%20ishrane.PNG?raw=true "Dnevnik ishrane")
-![Alt text](./UI%20Design/App%20Screenshots/Nutritivne%20vrijednosti.PNG?raw=true "Nutritivne vrijednost")
-![Alt text](./UI%20Design/App%20Screenshots/Napredak.PNG?raw=true "Napredak")
+![Alt text](./UI%20Design/App%20Screenshots/Dnevnik%20ishrane.jpeg?raw=true "Dnevnik ishrane")
+![Alt text](./UI%20Design/App%20Screenshots/Nutritivne%20vrijednosti.jpeg?raw=true "Nutritivne vrijednost")
+![Alt text](./UI%20Design/App%20Screenshots/Napredak.jpeg?raw=true "Napredak")
