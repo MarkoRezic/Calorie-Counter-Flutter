@@ -37,7 +37,7 @@ Preduvjeti:
 - potreban je fizièki ureðaj, emulatori ne podržavaju ovu opciju 
 
 ## App screenshots
-<img src="https://github.com/MarkoRezic/Calorie-Counter-Flutter/UI%20Design/App%20Screenshots/Poèetni%20zaslon.PNG" alt="Poèetni zaslon" width="150"/>
-<img src="https://github.com/MarkoRezic/Calorie-Counter-Flutter/UI%20Design/App%20Screenshots/Dnevnik%20ishrane.jpeg" alt="Dnevnik ishrane" width="150"/>
-<img src="https://github.com/MarkoRezic/Calorie-Counter-Flutter/UI%20Design/App%20Screenshots/Nutritivne%20vrijednosti.jpeg" alt="Nutritivne vrijednost" width="150"/>
-<img src="https://github.com/MarkoRezic/Calorie-Counter-Flutter/UI%20Design/App%20Screenshots/Napredak.jpeg" alt="Napredak" width="150"/>
+<img src="https://github.com/MarkoRezic/Calorie-Counter-Flutter/blob/master/UI%20Design/App%20Screenshots/Poèetni%20zaslon.PNG" alt="Poèetni zaslon" width="150"/>
+<img src="https://github.com/MarkoRezic/Calorie-Counter-Flutter/blob/master/UI%20Design/App%20Screenshots/Dnevnik%20ishrane.jpeg" alt="Dnevnik ishrane" width="150"/>
+<img src="https://github.com/MarkoRezic/Calorie-Counter-Flutter/blob/master/UI%20Design/App%20Screenshots/Nutritivne%20vrijednosti.jpeg" alt="Nutritivne vrijednost" width="150"/>
+<img src="https://github.com/MarkoRezic/Calorie-Counter-Flutter/blob/master/UI%20Design/App%20Screenshots/Napredak.jpeg" alt="Napredak" width="150"/>
