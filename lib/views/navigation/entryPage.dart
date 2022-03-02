@@ -3,6 +3,7 @@ import 'package:calorie_counter/utils/cache_manager.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class EntryPage extends StatefulWidget {
@@ -39,8 +40,7 @@ class _EntryPageState extends State<EntryPage> {
   void _parseAmount(String? value) {
     try {
       _amountController.text = _amountController.text.replaceAll(",", ".");
-      _amountController.selection = TextSelection.fromPosition(
-          TextPosition(offset: _amountController.text.length));
+      _amountController.selection = TextSelection.fromPosition(TextPosition(offset: _amountController.text.length));
       if (_amountController.text != ".") {
         double testAmount = num.parse(_amountController.text).toDouble();
         setState(() {
@@ -76,18 +76,17 @@ class _EntryPageState extends State<EntryPage> {
       _loading = true;
       FocusScope.of(context).unfocus();
     });
-    Dio dio = Dio();
+    Dio dio = Dio(
+      BaseOptions(
+        baseUrl: dotenv.get('API_BASE_URL'),
+      ),
+    );
     dynamic user = CacheManager.getData("user");
-    DateTime date =
-        DateTime.now().add(Duration(days: CacheManager.getData("dayOffset")));
-    String dateString = date.year.toString() +
-        "-" +
-        date.month.toString() +
-        "-" +
-        date.day.toString();
+    DateTime date = DateTime.now().add(Duration(days: CacheManager.getData("dayOffset")));
+    String dateString = date.year.toString() + "-" + date.month.toString() + "-" + date.day.toString();
     try {
       dio.post(
-        "http://10.0.2.2:3000/diary_entries",
+        "diary_entries",
         data: {
           "user_id": user["user_id"],
           "product_id": widget.product["product_id"],
@@ -191,10 +190,7 @@ class _EntryPageState extends State<EntryPage> {
               children: [
                 Container(
                   decoration: BoxDecoration(boxShadow: [
-                    BoxShadow(
-                        offset: const Offset(0, 2),
-                        blurRadius: 4,
-                        color: Colors.black.withOpacity(0.4)),
+                    BoxShadow(offset: const Offset(0, 2), blurRadius: 4, color: Colors.black.withOpacity(0.4)),
                   ], color: Colors.white),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -217,10 +213,7 @@ class _EntryPageState extends State<EntryPage> {
                 ),
                 Container(
                   decoration: BoxDecoration(boxShadow: [
-                    BoxShadow(
-                        offset: const Offset(0, 2),
-                        blurRadius: 4,
-                        color: Colors.black.withOpacity(0.4)),
+                    BoxShadow(offset: const Offset(0, 2), blurRadius: 4, color: Colors.black.withOpacity(0.4)),
                   ], color: Colors.white),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -248,15 +241,11 @@ class _EntryPageState extends State<EntryPage> {
                             onEditingComplete: () => _parseAmount,
                             onChanged: _parseAmount,
                             inputFormatters: [
-                              FilteringTextInputFormatter.allow(
-                                  RegExp("(^[0-9]{0,3}[.,]?[0-9]{0,2}\$)")),
+                              FilteringTextInputFormatter.allow(RegExp("(^[0-9]{0,3}[.,]?[0-9]{0,2}\$)")),
                             ],
-                            keyboardType: const TextInputType.numberWithOptions(
-                                signed: false, decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(signed: false, decimal: true),
                             validator: (value) {
-                              if (value == null ||
-                                  value.isEmpty ||
-                                  num.parse(value) == 0) {
+                              if (value == null || value.isEmpty || num.parse(value) == 0) {
                                 return 'Molimo unesite količinu.';
                               }
                               return null;
@@ -275,23 +264,14 @@ class _EntryPageState extends State<EntryPage> {
                         child: Column(
                           children: [
                             Text(
-                              _removeUnnecessaryDecimals(
-                                      (widget.product["default_amount"] *
-                                              _amount)
-                                          .toStringAsFixed(2)) +
-                                  widget.product["measure_abbreviation"]
-                                      .toString(),
+                              _removeUnnecessaryDecimals((widget.product["default_amount"] * _amount).toStringAsFixed(2)) + widget.product["measure_abbreviation"].toString(),
                               style: const TextStyle(
                                 fontSize: 20,
                                 color: Colors.grey,
                               ),
                             ),
                             Text(
-                              "(" +
-                                  widget.product["default_amount"].toString() +
-                                  widget.product["measure_abbreviation"]
-                                      .toString() +
-                                  " porcija)",
+                              "(" + widget.product["default_amount"].toString() + widget.product["measure_abbreviation"].toString() + " porcija)",
                               style: const TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey,
@@ -305,10 +285,7 @@ class _EntryPageState extends State<EntryPage> {
                 ),
                 Container(
                   decoration: BoxDecoration(boxShadow: [
-                    BoxShadow(
-                        offset: const Offset(0, 2),
-                        blurRadius: 4,
-                        color: Colors.black.withOpacity(0.4)),
+                    BoxShadow(offset: const Offset(0, 2), blurRadius: 4, color: Colors.black.withOpacity(0.4)),
                   ], color: Colors.white),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -321,10 +298,7 @@ class _EntryPageState extends State<EntryPage> {
                             child: Column(
                               children: [
                                 Text(
-                                  (widget.product[macroList[index]["key"]] *
-                                              _amount)
-                                          .toStringAsFixed(1) +
-                                      "g",
+                                  (widget.product[macroList[index]["key"]] * _amount).toStringAsFixed(1) + "g",
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
@@ -352,9 +326,7 @@ class _EntryPageState extends State<EntryPage> {
                           child: Column(
                             children: [
                               Text(
-                                ((widget.product["serving_calories"] * _amount)
-                                        .round())
-                                    .toString(),
+                                ((widget.product["serving_calories"] * _amount).round()).toString(),
                                 style: const TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -405,10 +377,7 @@ class _EntryPageState extends State<EntryPage> {
                                 ),
                               ),
                               Text(
-                                (widget.product[micro["key"]] * _amount)
-                                        .toStringAsFixed(1) +
-                                    " " +
-                                    micro["measure"].toString(),
+                                (widget.product[micro["key"]] * _amount).toStringAsFixed(1) + " " + micro["measure"].toString(),
                                 style: const TextStyle(
                                   fontSize: 16,
                                   color: Colors.grey,

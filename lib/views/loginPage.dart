@@ -7,6 +7,7 @@ import 'package:calorie_counter/utils/cache_manager.dart';
 import 'package:calorie_counter/views/basicInfoPage.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'navigationPage.dart';
@@ -39,24 +40,61 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     if (prefs!.getString('token') != null && mounted) {
-      Dio dio = Dio();
-      await dio
-          .get("http://10.0.2.2:3000/users/token/" + prefs!.getString('token')!)
-          .then((response) {
-        dynamic user = response.data["user"];
-        CacheManager.cacheData("user", user);
-        BMRModel bmrModel =
-            getAppropriateModel(user["model_id"], user["gender_id"]);
-        CacheManager.cacheData(
-            "dailyCalories",
-            bmrModel.calculate(user["weight"], user["height"], user["age"]) +
-                user["weekly_calorie_diff"]);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (BuildContext context) => NavigationPage(),
-          ),
-        );
+      Dio dio = Dio(
+        BaseOptions(
+          baseUrl: dotenv.get('API_BASE_URL'),
+        ),
+      );
+      await dio.get("users/token/" + prefs!.getString('token')!).then((response) {
+        if (response.data["error"] == 0) {
+          dynamic user = response.data["user"];
+          CacheManager.cacheData("user", user);
+          BMRModel bmrModel = getAppropriateModel(user["model_id"], user["gender_id"]);
+          CacheManager.cacheData("dailyCalories", bmrModel.calculate(user["weight"], user["height"], user["age"]) + user["weekly_calorie_diff"]);
+          final dailyCalories = CacheManager.getData("dailyCalories");
+          CacheManager.cacheData("dailyNutrients", {
+            "proteins": ((dailyCalories * 0.23) / 4).round(),
+            "carbs": ((dailyCalories * 0.45) / 4).round(),
+            "fats": ((dailyCalories * 0.32) / 9).round(),
+            "sugars": user["gender_id"] == 1 ? 36 : 24,
+            "fibers": user["gender_id"] == 1 ? 35 : 23,
+            "salt": 2300,
+            "calcium": user["age"] <= 50 ? 2500 : 2000,
+            "iron": user["gender_id"] == 2 && user["age"] <= 50 && user["age"] >= 19 ? 15 : 9,
+          });
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (BuildContext context) => NavigationPage(),
+            ),
+          );
+        } else if (response.data["error"] == 1) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              content: Text(
+                response.data["message"].toString(),
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white),
+              ),
+              backgroundColor: errorColor.withOpacity(0.8),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              content: Text(
+                "Došlo je do greške. Molimo pokušajte ponovo.",
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white),
+              ),
+              backgroundColor: errorColor.withOpacity(0.8),
+            ),
+          );
+        }
       });
     }
     if (loaded || !mounted) return;
@@ -120,8 +158,7 @@ class _LoginPageState extends State<LoginPage> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (BuildContext context) =>
-                                      const BasicInfoPage(
+                                  builder: (BuildContext context) => const BasicInfoPage(
                                     goalType: 1,
                                   ),
                                 ),
@@ -134,8 +171,7 @@ class _LoginPageState extends State<LoginPage> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (BuildContext context) =>
-                                      const BasicInfoPage(
+                                  builder: (BuildContext context) => const BasicInfoPage(
                                     goalType: 2,
                                   ),
                                 ),
@@ -148,8 +184,7 @@ class _LoginPageState extends State<LoginPage> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (BuildContext context) =>
-                                      const BasicInfoPage(
+                                  builder: (BuildContext context) => const BasicInfoPage(
                                     goalType: 3,
                                   ),
                                 ),

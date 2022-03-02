@@ -2,10 +2,14 @@ import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:calorie_counter/custom_colors.dart';
 import 'package:calorie_counter/utils/cache_manager.dart';
 import 'package:calorie_counter/views/navigation/homePage.dart';
+import 'package:calorie_counter/views/navigation/progressPage.dart';
 import 'package:calorie_counter/views/navigation/settingsPage.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'navigation/adminPage.dart';
+import 'navigation/nutritionPage.dart';
 
 class NavigationPage extends StatefulWidget {
   const NavigationPage({Key? key}) : super(key: key);
@@ -15,6 +19,7 @@ class NavigationPage extends StatefulWidget {
 }
 
 class _NavigationPageState extends State<NavigationPage> {
+  dynamic _user = CacheManager.getData("user");
   SharedPreferences? prefs;
   bool loaded = false;
   int currentPage = 0;
@@ -64,14 +69,7 @@ class _NavigationPageState extends State<NavigationPage> {
     return true;
   }
 
-  static const List<String> pageTitles = [
-    "CalorieCounter",
-    "Napredak",
-    "Postavke",
-    "Odabir Datuma",
-    "Nutritivne Vrijednosti",
-    "Administracija"
-  ];
+  static const List<String> pageTitles = ["CalorieCounter", "Napredak", "Postavke", "Nutritivne Vrijednosti", "Administracija"];
 
   ///PAGE NUMBERS
   ///0 - HOME
@@ -82,27 +80,27 @@ class _NavigationPageState extends State<NavigationPage> {
   Widget _getPageWidget() {
     switch (currentPage) {
       case 0:
-        return const HomePage();
+        return HomePage();
+      case 1:
+        return ProgressPage();
       case 2:
         return SettingsPage();
+      case 3:
+        return NutritionPage(
+          diaryEntries: CacheManager.getData("diaryEntries"),
+        );
       default:
         return Container();
     }
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now()
-            .add(Duration(days: CacheManager.getData("dayOffset") ?? 0)),
-        firstDate: DateTime(2021),
-        lastDate: DateTime(2023));
+    final DateTime? picked = await showDatePicker(context: context, initialDate: DateTime.now().add(Duration(days: CacheManager.getData("dayOffset") ?? 0)), firstDate: DateTime(2021), lastDate: DateTime(2023));
+    print(picked);
     if (picked != null) {
       setState(() {
-        CacheManager.cacheData(
-            "dayOffset",
-            -DateTime.now().difference(picked).inDays +
-                (DateTime.now().isBefore(picked) ? 1 : 0));
+        print("calling setstate");
+        CacheManager.cacheData("dayOffset", -DateTime.now().difference(picked).inDays + (DateTime.now().isBefore(picked) ? 1 : 0));
         currentPage = 0;
       });
     }
@@ -129,15 +127,21 @@ class _NavigationPageState extends State<NavigationPage> {
         centerTitle: false,
         actions: currentPage == 0
             ? [
-                IconButton(
-                    onPressed: () {},
-                    icon: const FaIcon(FontAwesomeIcons.server)),
-                IconButton(
-                    onPressed: () {},
-                    icon: const FaIcon(FontAwesomeIcons.chartPie)),
-                IconButton(
-                    onPressed: () => _selectDate(context),
-                    icon: const FaIcon(FontAwesomeIcons.solidCalendarAlt)),
+                _user["role_id"] == 1
+                    ? Container()
+                    : IconButton(
+                        onPressed: () => {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (BuildContext context) => AdminPage(),
+                            ),
+                          )
+                        },
+                        icon: const FaIcon(FontAwesomeIcons.server),
+                      ),
+                IconButton(onPressed: () => _selectNavItem(CacheManager.getData("diaryEntries") == null ? 0 : 3), icon: const FaIcon(FontAwesomeIcons.chartPie)),
+                IconButton(onPressed: () => _selectDate(context), icon: const FaIcon(FontAwesomeIcons.solidCalendarAlt)),
               ]
             : [],
       ),
@@ -158,44 +162,38 @@ class _NavigationPageState extends State<NavigationPage> {
           unselectedItemColor: inactiveIndicator,
           selectedItemColor: mainColorLight,
           onTap: _selectNavItem,
-          currentIndex: currentPage,
+          currentIndex: currentPage < 3 ? currentPage : 0,
           items: [
             BottomNavigationBarItem(
               label: "Početna",
               icon: Container(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 child: const FaIcon(FontAwesomeIcons.home),
               ),
               activeIcon: Container(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 child: const FaIcon(FontAwesomeIcons.home),
               ),
             ),
             BottomNavigationBarItem(
               label: "Napredak",
               icon: Container(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 child: const FaIcon(FontAwesomeIcons.chartLine),
               ),
               activeIcon: Container(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 child: const FaIcon(FontAwesomeIcons.chartLine),
               ),
             ),
             BottomNavigationBarItem(
               label: "Postavke",
               icon: Container(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 child: const FaIcon(FontAwesomeIcons.cog),
               ),
               activeIcon: Container(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 child: const FaIcon(FontAwesomeIcons.cog),
               ),
             ),

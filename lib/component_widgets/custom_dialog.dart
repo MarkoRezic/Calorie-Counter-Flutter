@@ -1,9 +1,11 @@
 import 'package:calorie_counter/component_widgets/transparent_outlined_button.dart';
+import 'package:calorie_counter/utils/bmr_model.dart';
 import 'package:calorie_counter/utils/cache_manager.dart';
 import 'package:calorie_counter/views/navigationPage.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../custom_colors.dart';
@@ -25,9 +27,13 @@ class _CustomDialogState extends State<CustomDialog> {
     setState(() {
       loading = true;
     });
-    Dio dio = Dio();
+    Dio dio = Dio(
+      BaseOptions(
+        baseUrl: dotenv.get('API_BASE_URL'),
+      ),
+    );
     dio.post(
-      "http://10.0.2.2:3000/users/login",
+      "users/login",
       data: {
         "username": usernameController.text,
         "password": passwordController.text,
@@ -38,12 +44,27 @@ class _CustomDialogState extends State<CustomDialog> {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString("token", response.data["token"]);
         CacheManager.cacheData("user", response.data["user"]);
+        final user = CacheManager.getData("user");
+        BMRModel bmrModel = getAppropriateModel(user["model_id"], user["gender_id"]);
+        CacheManager.cacheData("dailyCalories", bmrModel.calculate(user["weight"], user["height"], user["age"]) + user["weekly_calorie_diff"]);
+        final dailyCalories = CacheManager.getData("dailyCalories");
+        CacheManager.cacheData("dailyNutrients", {
+          "proteins": ((dailyCalories * 0.23) / 4).round(),
+          "carbs": ((dailyCalories * 0.45) / 4).round(),
+          "fats": ((dailyCalories * 0.32) / 9).round(),
+          "sugars": user["gender_id"] == 1 ? 36 : 24,
+          "fibers": user["gender_id"] == 1 ? 35 : 23,
+          "salt": 2300,
+          "calcium": user["age"] <= 50 ? 2500 : 2000,
+          "iron": user["gender_id"] == 2 && user["age"] <= 50 && user["age"] >= 19 ? 15 : 9,
+        });
+        Navigator.of(context, rootNavigator: true).pop();
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (BuildContext context) => NavigationPage(),
           ),
-        );
+        ).then((value) => {});
       } else {
         setState(() {
           loading = false;
@@ -88,8 +109,7 @@ class _CustomDialogState extends State<CustomDialog> {
               obscureText: !showPassword,
               decoration: InputDecoration(
                 suffixIcon: IconButton(
-                  icon: Icon(
-                      showPassword ? Icons.visibility_off : Icons.visibility),
+                  icon: Icon(showPassword ? Icons.visibility_off : Icons.visibility),
                   onPressed: () {
                     setState(() {
                       showPassword = !showPassword;

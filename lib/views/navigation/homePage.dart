@@ -3,76 +3,91 @@ import 'package:calorie_counter/utils/cache_manager.dart';
 import 'package:calorie_counter/views/navigation/searchPage.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'editPage.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  HomePage({Key? key}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  dynamic user = CacheManager.getData("user");
-  int dayOffset = 0;
-  List<dynamic> mealTypeList = [];
-  List<dynamic>? diaryEntries;
-  Map<String, List<dynamic>> mealEntriesMap = {};
+  dynamic _user = CacheManager.getData("user");
+  final int _dailyCalories = CacheManager.getData("dailyCalories") ?? 0;
+  int _dayOffset = 0;
+  List<dynamic> _mealTypeList = [];
+  List<dynamic>? _diaryEntries;
+  Map<String, List<dynamic>> _mealEntriesMap = {};
 
   @override
   void initState() {
     super.initState();
     if (CacheManager.getData("dayOffset") != null) {
+      if (!mounted) return;
       setState(() {
-        dayOffset = CacheManager.getData("dayOffset");
+        _dayOffset = CacheManager.getData("dayOffset");
       });
     } else {
-      CacheManager.cacheData("dayOffset", dayOffset);
+      CacheManager.cacheData("dayOffset", _dayOffset);
     }
     _getMealTypes();
-    _getDiaryEntries();
   }
 
   @override
   void didUpdateWidget(covariant HomePage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (CacheManager.getData("dayOffset") != dayOffset) {
+    if (CacheManager.getData("dayOffset") != _dayOffset) {
+      if (!mounted) return;
       setState(() {
-        dayOffset = CacheManager.getData("dayOffset") ?? 0;
-        diaryEntries = null;
-        mealEntriesMap = {};
+        _dayOffset = CacheManager.getData("dayOffset") ?? 0;
+        _diaryEntries = null;
+        _mealEntriesMap = {};
         _getDiaryEntries();
       });
     }
   }
 
   void _getMealTypes() {
-    Dio dio = Dio();
-    dio.get("http://10.0.2.2:3000/attributes/meal_types").then((response) {
-      //print(response);
+    if (CacheManager.getData("mealTypeList") != null) {
+      if (!mounted) return;
       setState(() {
-        mealTypeList = response.data;
+        _mealTypeList = CacheManager.getData("mealTypeList");
+        _getDiaryEntries();
       });
-    });
+    } else {
+      Dio dio = Dio(
+        BaseOptions(
+          baseUrl: dotenv.get('API_BASE_URL'),
+        ),
+      );
+      dio.get("attributes/meal_types").then((response) {
+        //print(response);
+        if (!mounted) return;
+        setState(() {
+          _mealTypeList = response.data;
+          CacheManager.cacheData("mealTypeList", _mealTypeList);
+          _getDiaryEntries();
+        });
+      });
+    }
   }
 
   void _getDiaryEntries() {
-    Dio dio = Dio();
-    final date = DateTime.now().add(Duration(days: dayOffset));
-    dio
-        .get("http://10.0.2.2:3000/diary_entries/user/" +
-            user["user_id"].toString() +
-            "/date/" +
-            date.year.toString() +
-            "-" +
-            date.month.toString() +
-            "-" +
-            date.day.toString())
-        .then((response) {
+    Dio dio = Dio(
+      BaseOptions(
+        baseUrl: dotenv.get('API_BASE_URL'),
+      ),
+    );
+    final date = DateTime.now().add(Duration(days: _dayOffset));
+    dio.get("diary_entries/user/" + _user["user_id"].toString() + "/date/" + date.year.toString() + "-" + date.month.toString() + "-" + date.day.toString()).then((response) {
+      if (!mounted) return;
       setState(() {
-        diaryEntries = response.data;
+        _diaryEntries = response.data;
+        CacheManager.cacheData("diaryEntries", _diaryEntries);
         _mapMealEntries();
       });
     });
@@ -80,13 +95,12 @@ class _HomePageState extends State<HomePage> {
 
   void _mapMealEntries() {
     Map<String, List<dynamic>> newMealEntriesMap = {};
-    for (int i = 0; i < mealTypeList.length; i++) {
-      newMealEntriesMap[mealTypeList[i]["name"]] = (diaryEntries ?? [])
-          .where((de) => de["meal_type"] == mealTypeList[i]["name"])
-          .toList();
+    for (int i = 0; i < _mealTypeList.length; i++) {
+      newMealEntriesMap[_mealTypeList[i]["name"]] = (_diaryEntries ?? []).where((de) => de["meal_type"] == _mealTypeList[i]["name"]).toList();
     }
+    if (!mounted) return;
     setState(() {
-      mealEntriesMap = newMealEntriesMap;
+      _mealEntriesMap = newMealEntriesMap;
     });
   }
 
@@ -101,45 +115,40 @@ class _HomePageState extends State<HomePage> {
   ];
 
   String _getDateText() {
-    if (dayOffset == 0) {
+    if (_dayOffset == 0) {
       return "Danas";
-    } else if (dayOffset == -1) {
+    } else if (_dayOffset == -1) {
       return "Jučer";
-    } else if (dayOffset == 1) {
+    } else if (_dayOffset == 1) {
       return "Sutra";
     } else {
-      final date = DateTime.now().add(Duration(days: dayOffset));
-      return dayNames[date.weekday - 1] +
-          ", " +
-          date.day.toString().padLeft(2, '0') +
-          "." +
-          date.month.toString().padLeft(2, '0') +
-          "." +
-          date.year.toString() +
-          ".";
+      final date = DateTime.now().add(Duration(days: _dayOffset));
+      return dayNames[date.weekday - 1] + ", " + date.day.toString().padLeft(2, '0') + "." + date.month.toString().padLeft(2, '0') + "." + date.year.toString() + ".";
     }
   }
 
   int _getTotalMealCalories(int indexMeal) {
     double sum = 0;
-    for (int indexEntry = 0;
-        indexEntry <
-            (mealEntriesMap[mealTypeList[indexMeal]["name"]] ?? []).length;
-        indexEntry++) {
-      sum += mealEntriesMap[mealTypeList[indexMeal]["name"]]![indexEntry]
-              ["amount"] *
-          mealEntriesMap[mealTypeList[indexMeal]["name"]]![indexEntry]
-              ["serving_calories"];
+    for (int indexEntry = 0; indexEntry < (_mealEntriesMap[_mealTypeList[indexMeal]["name"]] ?? []).length; indexEntry++) {
+      sum += _mealEntriesMap[_mealTypeList[indexMeal]["name"]]![indexEntry]["amount"] * _mealEntriesMap[_mealTypeList[indexMeal]["name"]]![indexEntry]["serving_calories"];
     }
     return sum.round();
   }
 
   int _getTotalDayCalories() {
     int totalSum = 0;
-    for (int indexMeal = 0; indexMeal < mealTypeList.length; indexMeal++) {
+    for (int indexMeal = 0; indexMeal < _mealTypeList.length; indexMeal++) {
       totalSum += _getTotalMealCalories(indexMeal);
     }
     return totalSum;
+  }
+
+  String _removeUnnecessaryDecimals(String input) {
+    return input.endsWith(".00")
+        ? input.substring(0, input.length - 3)
+        : (input.contains(".") && input.endsWith("0"))
+            ? input.substring(0, input.length - 1)
+            : input;
   }
 
   void _popEditCallback(value) {
@@ -170,10 +179,7 @@ class _HomePageState extends State<HomePage> {
       children: [
         Container(
           decoration: BoxDecoration(boxShadow: [
-            BoxShadow(
-                offset: const Offset(0, 2),
-                blurRadius: 4,
-                color: Colors.black.withOpacity(0.4)),
+            BoxShadow(offset: const Offset(0, 2), blurRadius: 4, color: Colors.black.withOpacity(0.4)),
           ], color: Colors.white),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -181,11 +187,12 @@ class _HomePageState extends State<HomePage> {
               Material(
                 child: IconButton(
                   onPressed: () {
+                    if (!mounted) return;
                     setState(() {
-                      dayOffset--;
-                      CacheManager.cacheData("dayOffset", dayOffset);
-                      diaryEntries = null;
-                      mealEntriesMap = {};
+                      _dayOffset--;
+                      CacheManager.cacheData("dayOffset", _dayOffset);
+                      _diaryEntries = null;
+                      _mealEntriesMap = {};
                       _getDiaryEntries();
                     });
                   },
@@ -199,11 +206,12 @@ class _HomePageState extends State<HomePage> {
                     child: InkWell(
                       child: Center(child: Text(_getDateText())),
                       onTap: () {
+                        if (!mounted) return;
                         setState(() {
-                          dayOffset = 0;
-                          CacheManager.cacheData("dayOffset", dayOffset);
-                          diaryEntries = null;
-                          mealEntriesMap = {};
+                          _dayOffset = 0;
+                          CacheManager.cacheData("dayOffset", _dayOffset);
+                          _diaryEntries = null;
+                          _mealEntriesMap = {};
                           _getDiaryEntries();
                         });
                       },
@@ -214,11 +222,12 @@ class _HomePageState extends State<HomePage> {
               Material(
                 child: IconButton(
                   onPressed: () {
+                    if (!mounted) return;
                     setState(() {
-                      dayOffset++;
-                      CacheManager.cacheData("dayOffset", dayOffset);
-                      diaryEntries = null;
-                      mealEntriesMap = {};
+                      _dayOffset++;
+                      CacheManager.cacheData("dayOffset", _dayOffset);
+                      _diaryEntries = null;
+                      _mealEntriesMap = {};
                       _getDiaryEntries();
                     });
                   },
@@ -232,10 +241,7 @@ class _HomePageState extends State<HomePage> {
         Container(
           padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(boxShadow: [
-            BoxShadow(
-                offset: const Offset(0, 2),
-                blurRadius: 4,
-                color: Colors.black.withOpacity(0.4)),
+            BoxShadow(offset: const Offset(0, 2), blurRadius: 4, color: Colors.black.withOpacity(0.4)),
           ], color: Colors.white),
           child: Row(
             children: [
@@ -257,8 +263,7 @@ class _HomePageState extends State<HomePage> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                CacheManager.getData("dailyCalories")
-                                    .toString(),
+                                _dailyCalories.toString(),
                                 style: const TextStyle(fontSize: 20),
                               ),
                               const Text(
@@ -324,13 +329,11 @@ class _HomePageState extends State<HomePage> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                (CacheManager.getData("dailyCalories") -
-                                        _getTotalDayCalories())
-                                    .toString(),
-                                style: const TextStyle(
+                                (_dailyCalories - _getTotalDayCalories()).toString(),
+                                style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
-                                  color: mainColorLight,
+                                  color: (_dailyCalories - _getTotalDayCalories()) > 0 ? mainColorLight : fatColor,
                                 ),
                               ),
                               const Text(
@@ -351,10 +354,9 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
-        mealTypeList.length == 0
+        _mealTypeList.length == 0
             ? const Expanded(
-                child: Center(
-                    child: RepaintBoundary(child: CircularProgressIndicator())),
+                child: Center(child: RepaintBoundary(child: CircularProgressIndicator())),
               )
             : Expanded(
                 child: Padding(
@@ -363,14 +365,11 @@ class _HomePageState extends State<HomePage> {
                     shrinkWrap: true,
                     padding: const EdgeInsets.only(top: 11),
                     children: List.generate(
-                      mealTypeList.length * 2,
+                      _mealTypeList.length * 2,
                       (indexMeal) => indexMeal % 2 == 0
                           ? Container(
                               decoration: BoxDecoration(boxShadow: [
-                                BoxShadow(
-                                    offset: const Offset(0, 2),
-                                    blurRadius: 4,
-                                    color: Colors.black.withOpacity(0.4)),
+                                BoxShadow(offset: const Offset(0, 2), blurRadius: 4, color: Colors.black.withOpacity(0.4)),
                               ], color: Colors.white),
                               child: Column(
                                 children: [
@@ -385,19 +384,17 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     ),
                                     child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
-                                          mealTypeList[indexMeal ~/ 2]["name"],
+                                          _mealTypeList[indexMeal ~/ 2]["name"],
                                           style: const TextStyle(
                                             fontSize: 20,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                         Text(
-                                          _getTotalMealCalories(indexMeal ~/ 2)
-                                              .toString(),
+                                          _getTotalMealCalories(indexMeal ~/ 2).toString(),
                                           style: const TextStyle(
                                             fontSize: 18,
                                           ),
@@ -405,63 +402,44 @@ class _HomePageState extends State<HomePage> {
                                       ],
                                     ),
                                   ),
-                                  ...List.generate(
-                                      (mealEntriesMap[
-                                                  mealTypeList[indexMeal ~/ 2]
-                                                      ["name"]] ??
-                                              [])
-                                          .length, (indexEntry) {
-                                    dynamic currentEntry = mealEntriesMap[
-                                        mealTypeList[indexMeal ~/ 2]
-                                            ["name"]]![indexEntry];
+                                  ...List.generate((_mealEntriesMap[_mealTypeList[indexMeal ~/ 2]["name"]] ?? []).length, (indexEntry) {
+                                    dynamic currentEntry = _mealEntriesMap[_mealTypeList[indexMeal ~/ 2]["name"]]![indexEntry];
                                     return Material(
                                       child: InkWell(
                                         onTap: () {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (BuildContext context) =>
-                                                  EditPage(
+                                              builder: (BuildContext context) => EditPage(
                                                 diaryEntry: currentEntry,
                                               ),
                                             ),
-                                          ).then((value) =>
-                                              _popEditCallback(value));
+                                          ).then((value) => _popEditCallback(value));
                                         },
                                         child: Container(
                                           padding: const EdgeInsets.all(15),
                                           decoration: BoxDecoration(
                                             border: Border(
                                               bottom: BorderSide(
-                                                color: Colors.black
-                                                    .withOpacity(0.25),
+                                                color: Colors.black.withOpacity(0.25),
                                                 width: 2,
                                               ),
                                             ),
                                           ),
                                           child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                             children: [
                                               Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
+                                                crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
-                                                    currentEntry[
-                                                        "product_name"],
+                                                    currentEntry["product_name"],
                                                     style: const TextStyle(
                                                       fontSize: 18,
                                                     ),
                                                   ),
                                                   Text(
-                                                    (currentEntry["serving_size"] *
-                                                                currentEntry[
-                                                                    "amount"])
-                                                            .toString() +
-                                                        currentEntry[
-                                                                "measure_abbreviation"]
-                                                            .toString(),
+                                                    _removeUnnecessaryDecimals((currentEntry["serving_size"] * currentEntry["amount"]).toStringAsFixed(2)) + currentEntry["measure_abbreviation"].toString(),
                                                     style: const TextStyle(
                                                       fontSize: 16,
                                                       color: Colors.grey,
@@ -470,11 +448,7 @@ class _HomePageState extends State<HomePage> {
                                                 ],
                                               ),
                                               Text(
-                                                (currentEntry[
-                                                            "serving_calories"] *
-                                                        currentEntry["amount"])
-                                                    .round()
-                                                    .toString(),
+                                                (currentEntry["serving_calories"] * currentEntry["amount"]).round().toString(),
                                                 style: const TextStyle(
                                                   fontSize: 18,
                                                 ),
@@ -494,13 +468,12 @@ class _HomePageState extends State<HomePage> {
                                         ),
                                       ),
                                     ),
-                                    child: diaryEntries == null
+                                    child: _diaryEntries == null
                                         ? const Center(
                                             child: Padding(
                                               padding: EdgeInsets.all(10),
                                               child: RepaintBoundary(
-                                                child:
-                                                    CircularProgressIndicator(),
+                                                child: CircularProgressIndicator(),
                                               ),
                                             ),
                                           )
@@ -513,27 +486,19 @@ class _HomePageState extends State<HomePage> {
                                                       Navigator.push(
                                                         context,
                                                         MaterialPageRoute(
-                                                          builder: (BuildContext
-                                                                  context) =>
-                                                              SearchPage(
-                                                            mealType:
-                                                                mealTypeList[
-                                                                    indexMeal ~/
-                                                                        2],
+                                                          builder: (BuildContext context) => SearchPage(
+                                                            mealType: _mealTypeList[indexMeal ~/ 2],
                                                           ),
                                                         ),
-                                                      ).then((value) =>
-                                                          _getDiaryEntries());
+                                                      ).then((value) => _getDiaryEntries());
                                                     },
                                                     child: const Padding(
-                                                      padding:
-                                                          EdgeInsets.all(15),
+                                                      padding: EdgeInsets.all(15),
                                                       child: Text(
                                                         "DODAJ HRANU",
                                                         style: TextStyle(
                                                           fontSize: 20,
-                                                          fontWeight:
-                                                              FontWeight.bold,
+                                                          fontWeight: FontWeight.bold,
                                                           color: mainColorLight,
                                                         ),
                                                       ),

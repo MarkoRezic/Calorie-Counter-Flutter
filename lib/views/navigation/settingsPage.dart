@@ -22,17 +22,17 @@ class _SettingsPageState extends State<SettingsPage> {
     },
     {
       "key": "weight",
-      "title": "Kilaža",
+      "title": "Kilaža (kg)",
       "icon": Icon(Icons.monitor_weight),
     },
     {
       "key": "goal_weight",
-      "title": "Ciljana kilaža",
+      "title": "Ciljana kilaža (kg)",
       "icon": Icon(Icons.monitor_weight_outlined),
     },
     {
       "key": "height",
-      "title": "Visina",
+      "title": "Visina (cm)",
       "icon": Icon(Icons.height),
     },
     {

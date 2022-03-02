@@ -2,6 +2,7 @@ import 'package:calorie_counter/custom_colors.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class EditPage extends StatefulWidget {
@@ -39,11 +40,12 @@ class _EditPageState extends State<EditPage> {
 
   void _getProduct() {
     if (!mounted) return;
-    Dio dio = Dio();
-    dio
-        .get("http://10.0.2.2:3000/products/" +
-            widget.diaryEntry["product_id"].toString())
-        .then((response) {
+    Dio dio = Dio(
+      BaseOptions(
+        baseUrl: dotenv.get('API_BASE_URL'),
+      ),
+    );
+    dio.get("products/" + widget.diaryEntry["product_id"].toString()).then((response) {
       print(response.data[0]);
       if (mounted) {
         setState(() {
@@ -57,8 +59,7 @@ class _EditPageState extends State<EditPage> {
   void _parseAmount(String? value) {
     try {
       _amountController.text = _amountController.text.replaceAll(",", ".");
-      _amountController.selection = TextSelection.fromPosition(
-          TextPosition(offset: _amountController.text.length));
+      _amountController.selection = TextSelection.fromPosition(TextPosition(offset: _amountController.text.length));
       if (_amountController.text != ".") {
         double testAmount = num.parse(_amountController.text).toDouble();
         setState(() {
@@ -94,10 +95,14 @@ class _EditPageState extends State<EditPage> {
       _loading = true;
       FocusScope.of(context).unfocus();
     });
-    Dio dio = Dio();
+    Dio dio = Dio(
+      BaseOptions(
+        baseUrl: dotenv.get('API_BASE_URL'),
+      ),
+    );
     try {
       dio.put(
-        "http://10.0.2.2:3000/diary_entries",
+        "diary_entries",
         data: {
           "diary_entry_id": widget.diaryEntry["diary_entry_id"],
           "amount": _amount,
@@ -126,12 +131,15 @@ class _EditPageState extends State<EditPage> {
       _loading = true;
       FocusScope.of(context).unfocus();
     });
-    Dio dio = Dio();
+    Dio dio = Dio(
+      BaseOptions(
+        baseUrl: dotenv.get('API_BASE_URL'),
+      ),
+    );
     try {
       dio
           .delete(
-        "http://10.0.2.2:3000/diary_entries/" +
-            widget.diaryEntry["diary_entry_id"].toString(),
+        "diary_entries/" + widget.diaryEntry["diary_entry_id"].toString(),
       )
           .then((response) {
         //print(response);
@@ -235,10 +243,7 @@ class _EditPageState extends State<EditPage> {
                     children: [
                       Container(
                         decoration: BoxDecoration(boxShadow: [
-                          BoxShadow(
-                              offset: const Offset(0, 2),
-                              blurRadius: 4,
-                              color: Colors.black.withOpacity(0.4)),
+                          BoxShadow(offset: const Offset(0, 2), blurRadius: 4, color: Colors.black.withOpacity(0.4)),
                         ], color: Colors.white),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -261,10 +266,7 @@ class _EditPageState extends State<EditPage> {
                       ),
                       Container(
                         decoration: BoxDecoration(boxShadow: [
-                          BoxShadow(
-                              offset: const Offset(0, 2),
-                              blurRadius: 4,
-                              color: Colors.black.withOpacity(0.4)),
+                          BoxShadow(offset: const Offset(0, 2), blurRadius: 4, color: Colors.black.withOpacity(0.4)),
                         ], color: Colors.white),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -292,16 +294,11 @@ class _EditPageState extends State<EditPage> {
                                   onEditingComplete: () => _parseAmount,
                                   onChanged: _parseAmount,
                                   inputFormatters: [
-                                    FilteringTextInputFormatter.allow(RegExp(
-                                        "(^[0-9]{0,3}[.,]?[0-9]{0,2}\$)")),
+                                    FilteringTextInputFormatter.allow(RegExp("(^[0-9]{0,3}[.,]?[0-9]{0,2}\$)")),
                                   ],
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                          signed: false, decimal: true),
+                                  keyboardType: const TextInputType.numberWithOptions(signed: false, decimal: true),
                                   validator: (value) {
-                                    if (value == null ||
-                                        value.isEmpty ||
-                                        num.parse(value) == 0) {
+                                    if (value == null || value.isEmpty || num.parse(value) == 0) {
                                       return 'Molimo unesite količinu.';
                                     }
                                     return null;
@@ -320,23 +317,14 @@ class _EditPageState extends State<EditPage> {
                               child: Column(
                                 children: [
                                   Text(
-                                    _removeUnnecessaryDecimals(
-                                            (_product["default_amount"] *
-                                                    _amount)
-                                                .toStringAsFixed(2)) +
-                                        _product["measure_abbreviation"]
-                                            .toString(),
+                                    _removeUnnecessaryDecimals((_product["default_amount"] * _amount).toStringAsFixed(2)) + _product["measure_abbreviation"].toString(),
                                     style: const TextStyle(
                                       fontSize: 20,
                                       color: Colors.grey,
                                     ),
                                   ),
                                   Text(
-                                    "(" +
-                                        _product["default_amount"].toString() +
-                                        _product["measure_abbreviation"]
-                                            .toString() +
-                                        " porcija)",
+                                    "(" + _product["default_amount"].toString() + _product["measure_abbreviation"].toString() + " porcija)",
                                     style: const TextStyle(
                                       fontSize: 14,
                                       color: Colors.grey,
@@ -350,10 +338,7 @@ class _EditPageState extends State<EditPage> {
                       ),
                       Container(
                         decoration: BoxDecoration(boxShadow: [
-                          BoxShadow(
-                              offset: const Offset(0, 2),
-                              blurRadius: 4,
-                              color: Colors.black.withOpacity(0.4)),
+                          BoxShadow(offset: const Offset(0, 2), blurRadius: 4, color: Colors.black.withOpacity(0.4)),
                         ], color: Colors.white),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -362,20 +347,15 @@ class _EditPageState extends State<EditPage> {
                               macroList.length,
                               (index) => Expanded(
                                 child: Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 10),
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
                                   child: Column(
                                     children: [
                                       Text(
-                                        (_product[macroList[index]["key"]] *
-                                                    _amount)
-                                                .toStringAsFixed(1) +
-                                            "g",
+                                        (_product[macroList[index]["key"]] * _amount).toStringAsFixed(1) + "g",
                                         style: TextStyle(
                                           fontSize: 20,
                                           fontWeight: FontWeight.bold,
-                                          color: macroList[index]["color"]
-                                              as Color,
+                                          color: macroList[index]["color"] as Color,
                                         ),
                                       ),
                                       const SizedBox(
@@ -395,14 +375,11 @@ class _EditPageState extends State<EditPage> {
                             ),
                             Expanded(
                               child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 10),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
                                 child: Column(
                                   children: [
                                     Text(
-                                      ((_product["serving_calories"] * _amount)
-                                              .round())
-                                          .toString(),
+                                      ((_product["serving_calories"] * _amount).round()).toString(),
                                       style: const TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
@@ -444,8 +421,7 @@ class _EditPageState extends State<EditPage> {
                                   ),
                                 ),
                                 child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       micro["title"],
@@ -454,10 +430,7 @@ class _EditPageState extends State<EditPage> {
                                       ),
                                     ),
                                     Text(
-                                      (_product[micro["key"]] * _amount)
-                                              .toStringAsFixed(1) +
-                                          " " +
-                                          micro["measure"].toString(),
+                                      (_product[micro["key"]] * _amount).toStringAsFixed(1) + " " + micro["measure"].toString(),
                                       style: const TextStyle(
                                         fontSize: 16,
                                         color: Colors.grey,

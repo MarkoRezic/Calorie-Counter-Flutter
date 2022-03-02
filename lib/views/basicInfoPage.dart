@@ -2,9 +2,12 @@ import 'package:calorie_counter/component_widgets/light_green_button.dart';
 import 'package:calorie_counter/component_widgets/page_indicator_row.dart';
 import 'package:calorie_counter/component_widgets/transparent_outlined_button.dart';
 import 'package:calorie_counter/custom_colors.dart';
+import 'package:calorie_counter/utils/bmr_model.dart';
+import 'package:calorie_counter/utils/cache_manager.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'navigationPage.dart';
@@ -73,22 +76,25 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
   }
 
   void _getWeeklyGoals() async {
-    Dio dio = Dio();
-    dio
-        .get("http://10.0.2.2:3000/attributes/weekly_goals/" +
-            widget.goalType.toString())
-        .then((response) {
+    Dio dio = Dio(
+      BaseOptions(
+        baseUrl: dotenv.get('API_BASE_URL'),
+      ),
+    );
+    dio.get("attributes/weekly_goals/" + widget.goalType.toString()).then((response) {
       setState(() {
-        weeklyGoalsList = widget.goalType == 1
-            ? response.data.reversed.toList()
-            : response.data;
+        weeklyGoalsList = widget.goalType == 1 ? response.data.reversed.toList() : response.data;
       });
     });
   }
 
   void _getGenders() async {
-    Dio dio = Dio();
-    dio.get("http://10.0.2.2:3000/attributes/genders").then((response) {
+    Dio dio = Dio(
+      BaseOptions(
+        baseUrl: dotenv.get('API_BASE_URL'),
+      ),
+    );
+    dio.get("attributes/genders").then((response) {
       setState(() {
         genderList = response.data;
       });
@@ -96,8 +102,12 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
   }
 
   void _getActivityLevels() async {
-    Dio dio = Dio();
-    dio.get("http://10.0.2.2:3000/attributes/activity_levels").then((response) {
+    Dio dio = Dio(
+      BaseOptions(
+        baseUrl: dotenv.get('API_BASE_URL'),
+      ),
+    );
+    dio.get("attributes/activity_levels").then((response) {
       setState(() {
         activityLevelList = response.data;
       });
@@ -108,9 +118,13 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
     setState(() {
       loading = true;
     });
-    Dio dio = Dio();
+    Dio dio = Dio(
+      BaseOptions(
+        baseUrl: dotenv.get('API_BASE_URL'),
+      ),
+    );
     await dio.post(
-      "http://10.0.2.2:3000/users/check",
+      "users/check",
       data: {
         "username": usernameController.text,
       },
@@ -133,23 +147,13 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
     setState(() {
       if (widget.goalType == 1) {
         setState(() {
-          showErrorGoalWeight = num.parse(goalWeightController.text) <
-                  num.parse(weightController.text)
-              ? false
-              : true;
-          errorGoalWeight = showErrorGoalWeight
-              ? "ciljana težina mora biti manja od trenutne"
-              : "";
+          showErrorGoalWeight = num.parse(goalWeightController.text) < num.parse(weightController.text) ? false : true;
+          errorGoalWeight = showErrorGoalWeight ? "ciljana težina mora biti manja od trenutne" : "";
         });
       } else if (widget.goalType == 3) {
         setState(() {
-          showErrorGoalWeight = num.parse(goalWeightController.text) >
-                  num.parse(weightController.text)
-              ? false
-              : true;
-          errorGoalWeight = showErrorGoalWeight
-              ? "ciljana težina mora biti veća od trenutne"
-              : "";
+          showErrorGoalWeight = num.parse(goalWeightController.text) > num.parse(weightController.text) ? false : true;
+          errorGoalWeight = showErrorGoalWeight ? "ciljana težina mora biti veća od trenutne" : "";
         });
       }
     });
@@ -160,27 +164,27 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
     setState(() {
       loading = true;
     });
-    Dio dio = Dio();
+    Dio dio = Dio(
+      BaseOptions(
+        baseUrl: dotenv.get('API_BASE_URL'),
+      ),
+    );
     await dio.post(
-      "http://10.0.2.2:3000/users/register",
+      "users/register",
       data: {
         "username": usernameController.text,
         "password": passwordController.text,
         "height": num.parse(heightController.text.replaceAll(",", ".")),
         "weight": num.parse(weightController.text.replaceAll(",", ".")),
-        "goal_weight": widget.goalType == 2
-            ? num.parse(weightController.text.replaceAll(",", "."))
-            : num.parse(goalWeightController.text.replaceAll(",", ".")),
+        "goal_weight": widget.goalType == 2 ? num.parse(weightController.text.replaceAll(",", ".")) : num.parse(goalWeightController.text.replaceAll(",", ".")),
         "age": num.parse(ageController.text),
         "gender_id": genderList[selectedGenderIndex]["gender_id"],
-        "weekly_goal_id": weeklyGoalsList[selectedWeeklyGoalIndex]
-            ["weekly_goal_id"],
-        "activity_level_id": activityLevelList[selectedActivityLevelIndex]
-            ["activity_level_id"],
+        "weekly_goal_id": weeklyGoalsList[selectedWeeklyGoalIndex]["weekly_goal_id"],
+        "activity_level_id": activityLevelList[selectedActivityLevelIndex]["activity_level_id"],
       },
     ).then((response) async {
       await dio.post(
-        "http://10.0.2.2:3000/users/login",
+        "users/login",
         data: {
           "username": usernameController.text,
           "password": passwordController.text,
@@ -189,6 +193,21 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
         if (response.data["error"] == 0) {
           SharedPreferences prefs = await SharedPreferences.getInstance();
           prefs.setString("token", response.data["token"]);
+          CacheManager.cacheData("user", response.data["user"]);
+          final user = CacheManager.getData("user");
+          BMRModel bmrModel = getAppropriateModel(user["model_id"], user["gender_id"]);
+          CacheManager.cacheData("dailyCalories", bmrModel.calculate(user["weight"], user["height"], user["age"]) + user["weekly_calorie_diff"]);
+          final dailyCalories = CacheManager.getData("dailyCalories");
+          CacheManager.cacheData("dailyNutrients", {
+            "proteins": ((dailyCalories * 0.23) / 4).round(),
+            "carbs": ((dailyCalories * 0.45) / 4).round(),
+            "fats": ((dailyCalories * 0.32) / 9).round(),
+            "sugars": user["gender_id"] == 1 ? 36 : 24,
+            "fibers": user["gender_id"] == 1 ? 35 : 23,
+            "salt": 2300,
+            "calcium": user["age"] <= 50 ? 2500 : 2000,
+            "iron": user["gender_id"] == 2 && user["age"] <= 50 && user["age"] >= 19 ? 15 : 9,
+          });
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -207,8 +226,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
   void _handleSelect(index) {
     if (selectedPage == index) return;
     setState(() {
-      pageController.animateToPage(index,
-          duration: const Duration(milliseconds: 400), curve: Curves.ease);
+      pageController.animateToPage(index, duration: const Duration(milliseconds: 400), curve: Curves.ease);
     });
   }
 
@@ -216,8 +234,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
     if (loading) return;
     if (selectedPage == 0) return Navigator.pop(context);
     setState(() {
-      pageController.previousPage(
-          duration: const Duration(milliseconds: 400), curve: Curves.ease);
+      pageController.previousPage(duration: const Duration(milliseconds: 400), curve: Curves.ease);
     });
   }
 
@@ -242,8 +259,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
       return;
     }
     setState(() {
-      pageController.nextPage(
-          duration: const Duration(milliseconds: 400), curve: Curves.ease);
+      pageController.nextPage(duration: const Duration(milliseconds: 400), curve: Curves.ease);
     });
   }
 
@@ -312,7 +328,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                     if (value == null || value.isEmpty) {
                       return 'Molimo unesite šifru.';
                     } else if (value.length < 8) {
-                      return 'Šifra mora imati barem 3 slova.';
+                      return 'Šifra mora imati barem 8 znakova.';
                     }
                     return null;
                   },
@@ -330,9 +346,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                     ),
                     suffixIcon: IconButton(
                       color: Colors.white.withOpacity(0.6),
-                      icon: Icon(showPassword
-                          ? Icons.visibility_off
-                          : Icons.visibility),
+                      icon: Icon(showPassword ? Icons.visibility_off : Icons.visibility),
                       onPressed: () {
                         setState(() {
                           showPassword = !showPassword;
@@ -381,9 +395,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                     ),
                     suffixIcon: IconButton(
                       color: Colors.white.withOpacity(0.6),
-                      icon: Icon(showRepassword
-                          ? Icons.visibility_off
-                          : Icons.visibility),
+                      icon: Icon(showRepassword ? Icons.visibility_off : Icons.visibility),
                       onPressed: () {
                         setState(() {
                           showRepassword = !showRepassword;
@@ -439,8 +451,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                             ),
                             value: weeklyGoalsList[selectedWeeklyGoalIndex],
                             selectedItemBuilder: (BuildContext context) {
-                              return weeklyGoalsList
-                                  .map<Widget>((dynamic item) {
+                              return weeklyGoalsList.map<Widget>((dynamic item) {
                                 return Text(
                                   item["description"],
                                   maxLines: 1,
@@ -453,8 +464,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                             },
                             onChanged: (dynamic newValue) {
                               setState(() {
-                                selectedWeeklyGoalIndex =
-                                    weeklyGoalsList.indexOf(newValue);
+                                selectedWeeklyGoalIndex = weeklyGoalsList.indexOf(newValue);
                               });
                             })
                         : const CircularProgressIndicator())
@@ -483,11 +493,9 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                 TextFormField(
                   controller: heightController,
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(
-                        RegExp("(^[0-9]{1,3}[.,]?[0-9]{0,2}\$)")),
+                    FilteringTextInputFormatter.allow(RegExp("(^[0-9]{1,3}[.,]?[0-9]{0,2}\$)")),
                   ],
-                  keyboardType: const TextInputType.numberWithOptions(
-                      signed: false, decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(signed: false, decimal: true),
                   style: const TextStyle(
                     color: Colors.white,
                   ),
@@ -523,11 +531,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                 ),
                 TextFormField(
                   controller: ageController,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    FilteringTextInputFormatter.allow(
-                        RegExp("(^[1-9][0-9]{0,2}\$)"))
-                  ],
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly, FilteringTextInputFormatter.allow(RegExp("(^[1-9][0-9]{0,2}\$)"))],
                   keyboardType: TextInputType.number,
                   style: const TextStyle(
                     color: Colors.white,
@@ -596,8 +600,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                         value: genderList[selectedGenderIndex],
                         onChanged: (dynamic newValue) {
                           setState(() {
-                            selectedGenderIndex =
-                                genderList.indexOf(newValue ?? {});
+                            selectedGenderIndex = genderList.indexOf(newValue ?? {});
                           });
                         })
                     : const CircularProgressIndicator(),
@@ -621,11 +624,9 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                 TextFormField(
                   controller: weightController,
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(
-                        RegExp("(^[0-9]{1,3}[.,]?[0-9]{0,2}\$)")),
+                    FilteringTextInputFormatter.allow(RegExp("(^[0-9]{1,3}[.,]?[0-9]{0,2}\$)")),
                   ],
-                  keyboardType: const TextInputType.numberWithOptions(
-                      signed: false, decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(signed: false, decimal: true),
                   style: const TextStyle(
                     color: Colors.white,
                   ),
@@ -663,11 +664,9 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                     ? TextFormField(
                         controller: goalWeightController,
                         inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp("(^[0-9]{1,3}[.,]?[0-9]{0,2}\$)")),
+                          FilteringTextInputFormatter.allow(RegExp("(^[0-9]{1,3}[.,]?[0-9]{0,2}\$)")),
                         ],
-                        keyboardType: const TextInputType.numberWithOptions(
-                            signed: false, decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(signed: false, decimal: true),
                         style: const TextStyle(
                           color: Colors.white,
                         ),
@@ -691,8 +690,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                             fontWeight: FontWeight.bold,
                             color: Colors.white.withOpacity(0.6),
                           ),
-                          errorText:
-                              errorGoalWeight.isEmpty ? null : errorGoalWeight,
+                          errorText: errorGoalWeight.isEmpty ? null : errorGoalWeight,
                           errorStyle: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: errorColor,
@@ -764,8 +762,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                         value: activityLevelList[selectedActivityLevelIndex],
                         onChanged: (dynamic newValue) {
                           setState(() {
-                            selectedActivityLevelIndex =
-                                activityLevelList.indexOf(newValue ?? {});
+                            selectedActivityLevelIndex = activityLevelList.indexOf(newValue ?? {});
                           });
                         })
                     : const CircularProgressIndicator(),
