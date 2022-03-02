@@ -20,7 +20,7 @@ Preduvjeti:
 - nakon pokretanja se generira /build folder
 - Aplikacija bi se trebala instalirati i pokrenuti na ureðaju
 - Izgenerirana .apk datoteka se nalazi u /build/app/outputs/flutter-apk/app.apk
-- Po defaultu se generira "debug" verzija, ukoliko je potrebna release verzija (puno brža i služi za produkciju), može se izgenerirati sa `flutter build`
+- Po defaultu se generira "debug" verzija, ukoliko je potrebna release verzija (puno brža i služi za produkciju), može se izgenerirati sa `flutter build apk`, ova apk æe se nalaziti unutar /build/app/outputs/flutter-apk/app-release.apk
 
 # Pokretanje backenda
 - za lokalni backend preuzeti git repozitorij https://github.com/MarkoRezic/Calorie-Counter-NodeJS
@@ -30,7 +30,7 @@ Preduvjeti:
 - ukoliko je potrebno i lokalnu bazu napraviti, potrebno je schemu kreirati i promijeniti podatke za spajanje unutar root foldera od backenda `.env` datoteci
 
 # Instalacija gotove aplikacije
-- u root folderu ovog repozitorija se nalazi i app.apk èijom instalacijom se može odmah koristiti aplikacija (Android ureðaji)
+- u root folderu ovog repozitorija se nalazi i app-release.apk èijom instalacijom se može odmah koristiti aplikacija (Android ureðaji)
 
 # Korištenje barkod skenera
 - zakorištenje skenera potrebno je dati dozvolu korištenja kamere na ureðaju

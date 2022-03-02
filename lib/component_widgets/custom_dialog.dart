@@ -32,47 +32,66 @@ class _CustomDialogState extends State<CustomDialog> {
         baseUrl: dotenv.get('API_BASE_URL'),
       ),
     );
-    dio.post(
-      "users/login",
-      data: {
-        "username": usernameController.text,
-        "password": passwordController.text,
-      },
-    ).then((response) async {
-      print(response);
-      if (response.data["error"] == 0) {
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        prefs.setString("token", response.data["token"]);
-        CacheManager.cacheData("user", response.data["user"]);
-        final user = CacheManager.getData("user");
-        BMRModel bmrModel = getAppropriateModel(user["model_id"], user["gender_id"]);
-        CacheManager.cacheData("dailyCalories", bmrModel.calculate(user["weight"], user["height"], user["age"]) + user["weekly_calorie_diff"]);
-        final dailyCalories = CacheManager.getData("dailyCalories");
-        CacheManager.cacheData("dailyNutrients", {
-          "proteins": ((dailyCalories * 0.23) / 4).round(),
-          "carbs": ((dailyCalories * 0.45) / 4).round(),
-          "fats": ((dailyCalories * 0.32) / 9).round(),
-          "sugars": user["gender_id"] == 1 ? 36 : 24,
-          "fibers": user["gender_id"] == 1 ? 35 : 23,
-          "salt": 2300,
-          "calcium": user["age"] <= 50 ? 2500 : 2000,
-          "iron": user["gender_id"] == 2 && user["age"] <= 50 && user["age"] >= 19 ? 15 : 9,
-        });
-        Navigator.of(context, rootNavigator: true).pop();
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (BuildContext context) => NavigationPage(),
+    try {
+      dio.post(
+        "users/login",
+        data: {
+          "username": usernameController.text,
+          "password": passwordController.text,
+        },
+      ).then((response) async {
+        print(response);
+        if (response.data["error"] == 0) {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          prefs.setString("token", response.data["token"]);
+          CacheManager.cacheData("user", response.data["user"]);
+          final user = CacheManager.getData("user");
+          BMRModel bmrModel = getAppropriateModel(user["model_id"], user["gender_id"]);
+          CacheManager.cacheData("dailyCalories", bmrModel.calculate(user["weight"], user["height"], user["age"]) + user["weekly_calorie_diff"]);
+          final dailyCalories = CacheManager.getData("dailyCalories");
+          CacheManager.cacheData("dailyNutrients", {
+            "proteins": ((dailyCalories * 0.23) / 4).round(),
+            "carbs": ((dailyCalories * 0.45) / 4).round(),
+            "fats": ((dailyCalories * 0.32) / 9).round(),
+            "sugars": user["gender_id"] == 1 ? 36 : 24,
+            "fibers": user["gender_id"] == 1 ? 35 : 23,
+            "salt": 2300,
+            "calcium": user["age"] <= 50 ? 2500 : 2000,
+            "iron": user["gender_id"] == 2 && user["age"] <= 50 && user["age"] >= 19 ? 15 : 9,
+          });
+          Navigator.of(context, rootNavigator: true).pop();
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (BuildContext context) => NavigationPage(),
+            ),
+          ).then((value) => {});
+        } else {
+          setState(() {
+            loading = false;
+            showError = true;
+            error = response.data["message"];
+          });
+        }
+      });
+    } on Exception catch (_) {
+      setState(() {
+        loading = false;
+        showError = false;
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text(
+              "Došlo je do greške. Molimo pokušajte ponovo.",
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: errorColor.withOpacity(0.8),
           ),
-        ).then((value) => {});
-      } else {
-        setState(() {
-          loading = false;
-          showError = true;
-          error = response.data["message"];
-        });
-      }
-    });
+        );
+      });
+    }
   }
 
   @override
