@@ -1,6 +1,10 @@
 import 'package:calorie_counter/utils/cache_manager.dart';
+import 'package:calorie_counter/views/navigation/changeSettingsPage.dart';
 import 'package:flutter/material.dart';
+import 'package:restart_app/restart_app.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../custom_colors.dart';
 
 class SettingsPage extends StatefulWidget {
   @override
@@ -47,6 +51,29 @@ class _SettingsPageState extends State<SettingsPage> {
     },
   ];
 
+  void _popChangeCallback(value) {
+    if (value == null) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        content: Text(
+          value["message"],
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.white),
+        ),
+        backgroundColor: value["error"] == 0
+            ? mainColor.withOpacity(0.8)
+            : value["error"] == 1
+                ? errorColor.withOpacity(0.8)
+                : null,
+      ),
+    );
+    if (value["error"] == 0) {
+      Restart.restartApp();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -65,7 +92,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
             ),
             trailing: Icon(Icons.person),
-            onTap: () {},
+            onTap: null,
             contentPadding: EdgeInsets.symmetric(
               vertical: 0,
               horizontal: 10,
@@ -90,7 +117,14 @@ class _SettingsPageState extends State<SettingsPage> {
                       ],
                     ),
                     trailing: userAttributes[index ~/ 2]["icon"] as Icon,
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (BuildContext context) => ChangeSettingsPage(),
+                        ),
+                      ).then((value) => _popChangeCallback(value));
+                    },
                     contentPadding: EdgeInsets.symmetric(
                       vertical: 0,
                       horizontal: 10,
